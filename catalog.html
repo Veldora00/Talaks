@@ -159,8 +159,7 @@
   // "From" price: the lowest monthly across every tier and term, read from
   // the same explicit price map the product page uses (assets/pricing.js).
   function cheapestMonthly(d, useWas){
-    if (useWas) return null;           // sale display retired with the share model
-    return window.TalaksPricing.fromMonthly(d);
+    return useWas ? window.TalaksPricing.fromMonthlyWas(d) : window.TalaksPricing.fromMonthly(d);
   }
 
   const stepBrand  = document.getElementById('step-brand');

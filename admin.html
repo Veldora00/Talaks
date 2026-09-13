@@ -122,6 +122,8 @@
   .terms-note{ font-size:12.5px; color:var(--paper-faint); margin-top:14px; line-height:1.5; }
   .tier-grid{ display:grid; grid-template-columns:1.1fr 1fr 1fr 1fr 1fr 32px; gap:8px 10px; align-items:start; margin-bottom:8px; }
   .tier-grid input{ width:100%; }
+  .tier-grid input.was{ margin-top:4px; font-size:12px; opacity:.75; }
+  .tier-grid input.was::placeholder{ font-style:italic; }
   .tier-head{ font-size:11.5px; color:var(--paper-faint); letter-spacing:0.03em; text-transform:uppercase; margin-bottom:6px; }
   .tier-grid .hr{ display:block; font-size:11px; margin-top:4px; min-height:14px; color:var(--paper-faint); }
   .tier-grid .hr.ok{ color:#4CC38A; }
@@ -347,11 +349,15 @@
     const tierIn = t => ({
       gb: t.gb || '',
       rrp: t.rrp == null ? '' : String(t.rrp),
+      rrpWas: t.rrp_was == null ? '' : String(t.rrp_was),
       m12: t.monthly && t.monthly['12'] != null ? String(t.monthly['12']) : '',
       m24: t.monthly && t.monthly['24'] != null ? String(t.monthly['24']) : '',
       m36: t.monthly && t.monthly['36'] != null ? String(t.monthly['36']) : '',
+      w12: t.monthly_was && t.monthly_was['12'] != null ? String(t.monthly_was['12']) : '',
+      w24: t.monthly_was && t.monthly_was['24'] != null ? String(t.monthly_was['24']) : '',
+      w36: t.monthly_was && t.monthly_was['36'] != null ? String(t.monthly_was['36']) : '',
     });
-    const blankTier = () => ({ gb:'', rrp:'', m12:'', m24:'', m36:'' });
+    const blankTier = () => ({ gb:'', rrp:'', rrpWas:'', m12:'', m24:'', m36:'', w12:'', w24:'', w36:'' });
     if (existing){
       const tiers = (existing.storages || []).map(tierIn);
       formState = {
@@ -398,13 +404,15 @@
 
       '<fieldset><legend>Storage tiers &amp; pricing — dollars per month</legend>' +
         '<div class="tier-grid tier-head">' +
-          '<span>Storage</span><span>RRP $</span><span>12 mo</span><span>24 mo</span><span>36 mo</span><span></span>' +
+          '<span>Storage</span><span>RRP $ <small>/ was</small></span><span>12 mo <small>/ was</small></span><span>24 mo <small>/ was</small></span><span>36 mo <small>/ was</small></span><span></span>' +
         '</div>' +
         '<div id="storage-rows"></div>' +
         '<button type="button" class="btn-add" id="add-storage">+ Add storage tier</button>' +
         '<p class="terms-note">Each tier has its own RRP and its own monthly price per term. Leave a term blank and it is not offered on that tier. ' +
           'Under each price the total over the term is shown against RRP — <strong>every total must stay below RRP</strong>. ' +
           'That is the line that keeps Talaks outside the credit-licence regime, and the database refuses to save a price that crosses it.</p>' +
+        '<p class="terms-note"><strong>On sale?</strong> Put the price a buyer pays <em>today</em> in RRP (that is what the totals are checked against) and the old, higher price in the small <em>was</em> box under it — it shows crossed out on the site. ' +
+          'Same for monthly: current price on top, the old higher price in <em>was</em>. A <em>was</em> that is not higher than the current price is refused; a made-up discount is misleading conduct under the ACL.</p>' +
       '</fieldset>' +
 
       '<fieldset><legend>Colours</legend><div id="colour-rows"></div>' +
@@ -424,7 +432,7 @@
       formState.status = el.dataset.status;
       renderForm();
     });
-    document.getElementById('add-storage').onclick = () => { formState.storages.push({ gb:'', rrp:'', m12:'', m24:'', m36:'' }); renderStorageRows(); };
+    document.getElementById('add-storage').onclick = () => { formState.storages.push({ gb:'', rrp:'', rrpWas:'', m12:'', m24:'', m36:'', w12:'', w24:'', w36:'' }); renderStorageRows(); };
     document.getElementById('add-colour').onclick = () => { formState.colours.push({ name:'', img:'' }); renderColourRows(); };
     document.getElementById('cancel-btn').onclick = () => { formBox.classList.add('hidden'); formBox.innerHTML=''; };
     document.getElementById('save-btn').onclick = saveDevice;
@@ -460,10 +468,12 @@
       row.className = 'tier-grid';
       const cell = (key, term) =>
         '<div><input type="number" step="1" placeholder="—" value="' + escapeHtml(s[key]) + '" data-s-key="' + key + '" data-s-idx="' + i + '">' +
-        headroomHtml(s[key], term, s.rrp) + '</div>';
+        headroomHtml(s[key], term, s.rrp) +
+        '<input type="number" step="1" class="was" placeholder="was" value="' + escapeHtml(s['w' + term]) + '" data-s-key="w' + term + '" data-s-idx="' + i + '"></div>';
       row.innerHTML =
         '<div><input placeholder="256GB" value="' + escapeHtml(s.gb) + '" data-s-key="gb" data-s-idx="' + i + '"></div>' +
-        '<div><input type="number" step="1" placeholder="1399" value="' + escapeHtml(s.rrp) + '" data-s-key="rrp" data-s-idx="' + i + '"></div>' +
+        '<div><input type="number" step="1" placeholder="1399" value="' + escapeHtml(s.rrp) + '" data-s-key="rrp" data-s-idx="' + i + '">' +
+          '<input type="number" step="1" class="was" placeholder="was" value="' + escapeHtml(s.rrpWas) + '" data-s-key="rrpWas" data-s-idx="' + i + '"></div>' +
         cell('m12', 12) + cell('m24', 24) + cell('m36', 36) +
         '<button type="button" class="dyn-remove" data-s-remove="' + i + '">×</button>';
       wrap.appendChild(row);
@@ -529,7 +539,16 @@
         return;
       }
       const tier = { gb: s.gb.trim(), rrp };
-      const monthly = {};
+      if (s.rrpWas !== '' && s.rrpWas != null){
+        const w = Number(s.rrpWas);
+        if (!(w > rrp)){
+          msg.textContent = s.gb + ': the "was" RRP ($' + w.toLocaleString('en-AU') + ') has to be higher than the current RRP ($' + rrp.toLocaleString('en-AU') + '), or leave it blank.';
+          msg.classList.add('err'); msg.classList.remove('hidden');
+          return;
+        }
+        tier.rrp_was = w;
+      }
+      const monthly = {}, monthlyWas = {};
       for (const [key, term] of [['m12',12],['m24',24],['m36',36]]){
         if (s[key] === '' || s[key] == null) continue;
         const m = Number(s[key]);
@@ -545,8 +564,26 @@
           return;
         }
         monthly[String(term)] = m;
+        const wk = 'w' + term;
+        if (s[wk] !== '' && s[wk] != null){
+          const w = Number(s[wk]);
+          if (!(w > m)){
+            msg.textContent = s.gb + ' at ' + term + ' months: the "was" price ($' + w + ') has to be higher than the current price ($' + m + '), or leave it blank.';
+            msg.classList.add('err'); msg.classList.remove('hidden');
+            return;
+          }
+          monthlyWas[String(term)] = w;
+        }
+      }
+      for (const term of [12, 24, 36]){
+        if (s['w' + term] !== '' && s['w' + term] != null && !monthly[String(term)]){
+          msg.textContent = s.gb + ' at ' + term + ' months has a "was" price but no current price. Fill in the current price or clear the "was" box.';
+          msg.classList.add('err'); msg.classList.remove('hidden');
+          return;
+        }
       }
       if (Object.keys(monthly).length) tier.monthly = monthly;
+      if (Object.keys(monthlyWas).length) tier.monthly_was = monthlyWas;
       storages.push(tier);
     }
     const colours = f.colours

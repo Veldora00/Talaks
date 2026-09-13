@@ -37,6 +37,22 @@ window.TalaksPricing = (function () {
     return Number.isFinite(v) && v > 0 ? v : null;
   }
 
+  /* Sale display. A tier may carry `rrp_was` and `monthly_was` — the higher
+   * figures before a price cut. They exist only to be crossed out; nothing is
+   * calculated from them, and the server ignores them. Anything not strictly
+   * higher than the current figure is treated as absent. */
+  function rrpWas(storage) {
+    if (!storage) return null;
+    var w = Number(storage.rrp_was);
+    return Number.isFinite(w) && w > Number(storage.rrp) ? w : null;
+  }
+  function monthlyWas(storage, term) {
+    if (!storage || !storage.monthly_was) return null;
+    var now = monthly(storage, term);
+    var w = Number(storage.monthly_was[String(term)]);
+    return now !== null && Number.isFinite(w) && w > now ? w : null;
+  }
+
   function total(storage, term) {
     var m = monthly(storage, term);
     return m === null ? null : m * Number(term);
@@ -69,15 +85,25 @@ window.TalaksPricing = (function () {
   /* "From $X/mo" for a card: the lowest monthly across every tier and term,
    * preferring the longest common term so the figure matches what most
    * people end up paying. */
-  function fromMonthly(device) {
+  function fromPlan(device) {
     var best = null;
     sellableStorages(device).forEach(function (s) {
       termsFor(s).forEach(function (t) {
         var m = monthly(s, t);
-        if (best === null || m < best) best = m;
+        if (best === null || m < best.monthly) best = { storage: s, term: t, monthly: m };
       });
     });
     return best;
+  }
+  function fromMonthly(device) {
+    var p = fromPlan(device);
+    return p ? p.monthly : null;
+  }
+  /* The pre-sale figure for that same cheapest plan, so "Save $X/mo" on a
+   * card compares like with like. Null when that plan isn't discounted. */
+  function fromMonthlyWas(device) {
+    var p = fromPlan(device);
+    return p ? monthlyWas(p.storage, p.term) : null;
   }
 
   /* Whether a device has anything for sale at all. Replaces the old
@@ -100,6 +126,9 @@ window.TalaksPricing = (function () {
     sellableStorages: sellableStorages,
     termsForDevice: termsForDevice,
     fromMonthly: fromMonthly,
+    fromMonthlyWas: fromMonthlyWas,
+    rrpWas: rrpWas,
+    monthlyWas: monthlyWas,
     isLive: isLive,
     money: money,
   };

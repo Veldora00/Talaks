@@ -234,8 +234,6 @@
 
       <div class="summary">
         <div class="summary-row"><span>Recommended retail price</span><b id="sum-rrp">—</b></div>
-        <div class="summary-row"><span>Total you pay over term</span><b id="sum-total">—</b></div>
-        <div class="summary-row"><span>Under RRP by</span><b id="sum-under" style="color:var(--teal);">—</b></div>
         
         <div class="summary-row"><span>Free delivery</span><b>3–5 business days</b></div>
       </div>
@@ -355,17 +353,19 @@
     document.getElementById('stage-img').alt = device.name + ' in ' + colour.name;
     document.getElementById('stage-img').onerror = function(){ this.onerror=null; this.src = PLACEHOLDER_IMG; };
     document.getElementById('colour-name').textContent = colour.name;
-    document.getElementById('sum-rrp').textContent = money(rrp);
-    document.getElementById('sum-total').textContent = money(total) + ' over ' + months + ' months';
-    document.getElementById('sum-under').textContent = money(rrp - total);
+    const rrpWas = P.rrpWas(storage);
+    document.getElementById('sum-rrp').innerHTML = (rrpWas ? '<s>' + money(rrpWas) + '</s>' : '') + money(rrp);
 
-    document.getElementById('stage-save').style.display = 'none';
-    // The RRP line under the price: the single most-asked question is "what
-    // would this cost to buy?", so answer it right next to the monthly figure.
+    // Sale badge on the photo when this exact plan has been cut.
+    const monthlyWas = P.monthlyWas(storage, months);
+    const saveEl = document.getElementById('stage-save');
+    saveEl.style.display = monthlyWas ? '' : 'none';
+    saveEl.textContent = monthlyWas ? 'Save ' + money(monthlyWas - monthly) + '/mo' : '';
+    // Just the RRP next to the monthly figure — the comparison sells itself.
+    // The full term total lives on the checkout summary, where it belongs.
     const wasEl = document.getElementById('was-line');
     wasEl.style.display = '';
-    wasEl.innerHTML = 'RRP <b>' + money(rrp) + '</b> · you pay <b>' + money(total) +
-      '</b> over ' + months + ' months, and never more.';
+    wasEl.innerHTML = 'RRP ' + (rrpWas ? '<s>' + money(rrpWas) + '</s>' : '') + '<b>' + money(rrp) + '</b>';
     document.getElementById('cta-price').textContent = money(monthly) + '/mo';
 
     document.getElementById('cta-button').onclick = () => {
@@ -420,7 +420,8 @@
       row.innerHTML =
         '<span class="t">' + meta.label + (meta.recommended && offered ? '<span class="tag">Popular</span>' : '') + '</span>' +
         '<span class="price">' + (offered
-          ? money(mo) + '<small>/mo</small>'
+          ? (P.monthlyWas(storage, m) ? '<s>' + money(P.monthlyWas(storage, m)) + '</s>' : '') +
+            money(mo) + '<small>/mo</small>'
           : '<small>512GB only</small>') + '</span>';
       if (offered) row.onclick = () => { state.termIdx = m; render(); };
       termRows.appendChild(row);
@@ -432,7 +433,7 @@
       const card = document.createElement('button');
       card.className = 'device-card' + (d.id === state.deviceId ? ' active' : '');
       const cheapest = P.fromMonthly(d);
-      const wasCheapest = null;
+      const wasCheapest = P.fromMonthlyWas(d);
       card.innerHTML =
         '<img src="' + d.colours[0].img + '" alt="' + d.name + '" onerror="this.onerror=null;this.src=\'' + PLACEHOLDER_IMG + '\'">' +
         '<div class="dn">' + d.name + '</div>' +

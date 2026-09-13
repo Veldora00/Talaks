@@ -312,11 +312,11 @@
       </details>
       <details>
         <summary>Can I end my subscription early?</summary>
-        <p>Sure — life happens. There's a fixed early-exit fee, shown upfront before you sign up, so you'll always know exactly what it'd cost if your plans change.</p>
+        <p>Sure — life happens. You pay the payments left on your term in one go, send the phone back, and that's it. The figure is shown before you sign up and falls every month you stay.</p>
       </details>
       <details>
         <summary>What if I don't return the phone?</summary>
-        <p>We'll always reach out first to sort something out. If a device genuinely can't be returned or resolved, a Non-Return Fee applies based on the phone's value at that point — but that's very much a last resort, not our first move.</p>
+        <p>We'll always reach out first to sort something out. If a device genuinely can't be returned or resolved, a Non-Return Fee applies — a fixed figure in your plan agreement, set so keeping the phone always costs more than returning it. It's a last resort, not our first move.</p>
       </details>
       <details>
         <summary>What if I damage it?</summary>
@@ -328,7 +328,7 @@
       </details>
       <details>
         <summary>Can I swap to a different phone partway through my plan?</summary>
-        <p>Once your current term wraps up, absolutely — swap to whatever's newest, free, no upgrade fee. Want to swap sooner, because something better just launched? Just message us, we'll figure it out together (an early-exit fee on your current plan would still apply).</p>
+        <p>Once your current term wraps up, absolutely — swap to whatever's newest, free, no upgrade fee. Want to swap sooner, because something better just launched? Email us and we'll lay out what's left on your current plan and what a new one would look like.</p>
       </details>
       <details>
         <summary>Can I subscribe to more than one device at a time?</summary>
@@ -351,9 +351,9 @@
         <li>Your plan runs for a fixed term you choose at sign-up — 12 or 24 months, and 36 on some devices. Talaks remains the legal owner of the device for the entire term.</li>
         <li>Total payments across the term are set at or below the device's retail cash price at the time you sign up. No interest is charged.</li>
         <li>Approval requires an identity verification check. Meeting our minimum requirements doesn't guarantee approval — every application is assessed individually.</li>
-        <li>You may end your plan early by paying the early-exit charge disclosed in your plan agreement — a fixed amount, not the sum of remaining payments.</li>
+        <li>You may end your plan early by paying the remaining payments on your term in one amount and returning the device within 14 days.</li>
         <li>At the end of your term, return the device in good working condition within the return window stated in your agreement, extend your plan, or start a new plan on a new device.</li>
-        <li>A Non-Return Fee applies if the device isn't returned and no alternative arrangement is agreed, calculated using the device's value at that time less payments already made.</li>
+        <li>A Non-Return Fee applies if the device isn't returned and no alternative arrangement is agreed: the device's retail price at order less 50% of your total plan payments, in addition to any payments still owing.</li>
         <li>If the device fails through a manufacturing fault you pay nothing. Accidental damage is your responsibility: we arrange the repair through the manufacturer or an authorised repairer and pass on the actual cost, quoted to you first. Loss and theft are not covered — full conditions are in your plan agreement.</li>
         <li>These summary terms are for guidance only. Your full plan agreement, provided at sign-up, is the governing document.</li>
       </ol>
@@ -402,8 +402,7 @@
       // Cheapest monthly across this device's terms. useWas prices it off the
       // pre-discount RRP so we can show the old price crossed out.
       const cheapestMonthly = (d, useWas) => {
-        if (useWas) return null;       // sale display retired with the share model
-        return window.TalaksPricing.fromMonthly(d);
+        return useWas ? window.TalaksPricing.fromMonthlyWas(d) : window.TalaksPricing.fromMonthly(d);
       };
 
       const allPrices = [];
