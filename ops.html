@@ -863,6 +863,7 @@
             '</div>';
         }).join('') : '<div class="note" style="color:var(--ink-faint)">None recorded.</div>') +
 
+        '<h3>Emails sent</h3><div id="demails">Loading…</div>' +
         '<h3>Internal notes</h3><div id="dnotes">Loading…</div>' +
         '<textarea id="dnote" placeholder="Add a note — what happened, what you did, why."></textarea>' +
         '<div style="margin-top:9px"><button class="btn sm" id="dsave">Save note</button></div>' +
@@ -872,7 +873,7 @@
     document.body.appendChild(d);
     $('dclose').addEventListener('click', closeDrawer);
 
-    loadNotes(o.id);
+    loadNotes(o.id); loadEmails(o.id);
     $('dsave').addEventListener('click', function () {
       var body = $('dnote').value.trim();
       if (body.length < 2) return;
@@ -881,9 +882,33 @@
         $('dsave').disabled = false;
         if (res.error) return drawerMsg('err', res.error.message);
         $('dnote').value = '';
-        loadNotes(o.id);
+        loadNotes(o.id); loadEmails(o.id);
       });
     });
+  }
+
+  function loadEmails(id) {
+    db.rpc('admin_email_log', { p_subscription_id: id }).then(function (res) {
+      var el = $('demails');
+      if (!el) return;
+      var rows = res.data || [];
+      var pill = { sent: 'ok', skipped: 'warn', failed: 'bad' };
+      el.innerHTML = rows.length ? rows.map(function (m) {
+        return '<div class="note">' +
+          '<span class="pill ' + (pill[m.status] || 'dim') + '">' + esc(m.status) + '</span> ' +
+          esc(m.subject) +
+          '<div class="meta">to ' + esc(m.to_email) + ' · ' + day(m.created_at) +
+          (m.error ? ' · ' + esc(m.error) : '') + '</div></div>';
+      }).join('') : '<div class="note" style="color:var(--ink-faint)">No emails for this order.</div>';
+    });
+  }
+
+  // After a ship or return is recorded, tell the customer. Best effort: the
+  // record is already written, so a failure here only shows in the log.
+  function notify(id, kind) {
+    return db.functions.invoke('notify-customer', { body: { subscription_id: id, kind: kind } })
+      .then(function (r) { if (r.error) console.warn('notify failed', r.error); })
+      .catch(function (e) { console.warn('notify failed', e); });
   }
 
   function loadNotes(id) {
@@ -1088,7 +1113,7 @@
           alert(res.error.message);
           return;
         }
-        closeDrawer(); reload();
+        notify(el.dataset.shipGo, 'shipped').then(function () { closeDrawer(); reload(); });
       });
       return;
     }
@@ -1100,7 +1125,7 @@
         .then(function (res) {
           el.disabled = false;
           if (res.error) { alert(res.error.message); return; }
-          closeDrawer(); reload();
+          notify(el.dataset.return, 'returned').then(function () { closeDrawer(); reload(); });
         });
       return;
     }
