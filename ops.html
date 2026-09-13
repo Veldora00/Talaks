@@ -139,6 +139,8 @@
         width:190px;max-width:48vw}
   .ship .hint{font-size:12px;color:var(--ink-faint);flex-basis:100%}
 
+  .lbl{display:block;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:4px}
+  .inp{font:inherit;font-size:13px;padding:7px 11px;border:1px solid var(--line-strong);border-radius:8px;background:var(--card);color:var(--ink);width:100%}
   tbody tr.attention td{background:#FDF4F1}
   tbody tr.attention:hover td{background:#FBEAE4}
 
@@ -190,6 +192,7 @@
     <button data-tab="orders">Orders</button>
     <button data-tab="payments">Payments</button>
     <button data-tab="customers">Customers</button>
+    <button data-tab="inventory">Inventory</button>
   </nav>
 </header>
 
@@ -277,6 +280,51 @@
       <tbody id="c-rows"></tbody>
     </table></div>
   </section>
+
+  <!-- ================================================= INVENTORY ===== -->
+  <section id="tab-inventory" hidden>
+    <div class="block">
+      <h2>Stock on hand <span class="why">Per catalogue line &middot; in stock / out with customers</span></h2>
+      <div class="scroll"><table>
+        <thead><tr><th>Device</th><th>Storage</th><th>Colour</th><th class="num">In stock</th><th class="num">Out</th></tr></thead>
+        <tbody id="inv-summary"></tbody>
+      </table></div>
+    </div>
+
+    <div class="block">
+      <h2>Add a unit <span class="why">One row per physical phone. IMEI is the identity that matters.</span></h2>
+      <div class="row" style="align-items:flex-end;gap:10px">
+        <div style="flex:1;min-width:160px"><label class="lbl">Device</label><select id="inv-device" class="inp"></select></div>
+        <div style="min-width:110px"><label class="lbl">Storage</label><select id="inv-storage" class="inp"></select></div>
+        <div style="min-width:130px"><label class="lbl">Colour</label><select id="inv-colour" class="inp"></select></div>
+        <div style="min-width:170px"><label class="lbl">IMEI</label><input id="inv-imei" class="inp" placeholder="15 digits" inputmode="numeric"></div>
+        <div style="min-width:130px"><label class="lbl">Serial</label><input id="inv-serial" class="inp" placeholder="optional"></div>
+        <div style="min-width:110px"><label class="lbl">Cost $</label><input id="inv-cost" class="inp" type="number" placeholder="what you paid"></div>
+        <div style="min-width:130px"><label class="lbl">Supplier</label><input id="inv-supplier" class="inp" placeholder="optional"></div>
+        <div><button class="btn primary sm" id="inv-add">Add unit</button></div>
+      </div>
+      <div id="inv-msg" style="padding:0 18px 12px"></div>
+    </div>
+
+    <div class="tools">
+      <input id="inv-search" placeholder="Search IMEI, serial, device, customer…">
+      <select id="inv-status">
+        <option value="">All statuses</option>
+        <option value="in_stock">In stock</option>
+        <option value="shipped">Out with customer</option>
+        <option value="returned">Returned — to grade</option>
+        <option value="retired">Retired</option>
+        <option value="lost">Lost</option>
+      </select>
+    </div>
+    <div class="block scroll"><table>
+      <thead><tr>
+        <th>Device</th><th>IMEI</th><th>Serial</th><th>Status</th><th>Customer</th>
+        <th class="num">Cost</th><th>Added</th><th></th>
+      </tr></thead>
+      <tbody id="inv-rows"></tbody>
+    </table></div>
+  </section>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
@@ -335,7 +383,7 @@
 
   /* ---------- state --------------------------------------------------- */
   var db = null;              // supabase client
-  var ORDERS = [], PAYMENTS = [], QUEUE = null;
+  var ORDERS = [], PAYMENTS = [], QUEUE = null, INVENTORY = [], STOCK = [], DEVICES = [];
 
   /* ---------- boot ---------------------------------------------------- */
   if (!window.Talaks || !Talaks.ready) {
@@ -372,7 +420,7 @@
       Array.prototype.forEach.call(document.querySelectorAll('#tabs button'), function (x) {
         x.classList.toggle('on', x === b);
       });
-      ['queue', 'orders', 'payments', 'customers'].forEach(function (t) {
+      ['queue', 'orders', 'payments', 'customers', 'inventory'].forEach(function (t) {
         $('tab-' + t).hidden = (t !== b.dataset.tab);
       });
     });
@@ -384,13 +432,19 @@
       db.rpc('admin_ops_queue'),
       db.rpc('admin_ops_orders'),
       db.rpc('admin_ops_payments'),
+      db.rpc('admin_inventory_list'),
+      db.rpc('admin_stock_summary'),
+      db.from('devices').select('id,name,storages,colours').order('brand').order('name'),
     ]).then(function (r) {
       var bad = r.find(function (x) { return x.error; });
       if (bad) { $('gate').hidden = false; $('gate').textContent = 'Could not load: ' + bad.error.message; return; }
       QUEUE = r[0].data || {};
       ORDERS = r[1].data || [];
       PAYMENTS = r[2].data || [];
-      renderQueue(); renderOrders(); renderPayments(); renderCustomers();
+      INVENTORY = r[3].data || [];
+      STOCK = r[4].data || [];
+      DEVICES = r[5].data || [];
+      renderQueue(); renderOrders(); renderPayments(); renderCustomers(); renderInventory();
       $('tab-queue').hidden = false;
     });
   }
@@ -440,10 +494,14 @@
           (r.has_card ? '' :
             '<div class="addr" style="color:var(--red)">No card saved — they never ' +
             'finished checkout. Approving will fail.</div>') +
+          (r.verification === 'Approved' ? '' :
+            '<div class="addr" style="color:var(--red)">Identity not verified. ' +
+            'Approve will ask you to confirm you have checked them another way.</div>') +
         '</div>' +
         '<div class="act">' +
           '<span class="pill dim">Applied ' + ago(r.created_at) + '</span>' +
           '<button class="btn primary sm" data-approve="' + esc(r.id) + '" ' +
+            'data-verified="' + (r.verification === 'Approved' ? '1' : '0') + '" ' +
             'data-amount="' + money(r.monthly_amount_cents, 'AUD') + '">Approve</button>' +
           '<button class="btn sm" data-decline="' + esc(r.id) + '">Decline</button>' +
         '</div></div>';
@@ -594,6 +652,138 @@
   }
   $('c-search').addEventListener('input', renderCustomers);
 
+  /* ============================================== INVENTORY ============ */
+  var UNIT_STATUS = {
+    in_stock:  ['ok',   'In stock'],
+    allocated: ['warn', 'Allocated'],
+    shipped:   ['warn', 'Out with customer'],
+    returned:  ['dim',  'Returned — to grade'],
+    retired:   ['dim',  'Retired'],
+    lost:      ['bad',  'Lost'],
+  };
+  function unitPill(s) {
+    var m = UNIT_STATUS[s] || ['dim', s || '—'];
+    return '<span class="pill ' + m[0] + '">' + esc(m[1]) + '</span>';
+  }
+
+  // What a unit is allowed to become from the ops screen. Shipping is not
+  // here on purpose — a unit only goes "out" through Mark posted on an
+  // order, so the IMEI always lands on a subscription.
+  var UNIT_NEXT = {
+    in_stock: [['retired', 'Retire'], ['lost', 'Lost']],
+    allocated: [['in_stock', 'Back to stock']],
+    shipped:   [['lost', 'Lost']],
+    returned:  [['in_stock', 'Back to stock'], ['retired', 'Retire']],
+    retired:   [['in_stock', 'Back to stock']],
+    lost:      [['in_stock', 'Found']],
+  };
+
+  function invMsg(kind, text) {
+    $('inv-msg').innerHTML = text
+      ? '<span class="pill ' + kind + '" style="font-size:12.5px">' + esc(text) + '</span>' : '';
+  }
+
+  function fillDeviceSelects() {
+    var dsel = $('inv-device');
+    var keep = dsel.value;
+    dsel.innerHTML = DEVICES.map(function (d) {
+      return '<option value="' + esc(d.id) + '">' + esc(d.name) + '</option>';
+    }).join('');
+    if (keep && DEVICES.some(function (d) { return d.id === keep; })) dsel.value = keep;
+    fillTierSelects();
+  }
+  function fillTierSelects() {
+    var d = DEVICES.filter(function (x) { return x.id === $('inv-device').value; })[0];
+    var tiers = (d && d.storages || []).map(function (t) { return t.gb; });
+    var cols  = (d && d.colours  || []).map(function (c) { return typeof c === 'string' ? c : (c.name || c.label || ''); })
+                .filter(Boolean);
+    $('inv-storage').innerHTML = tiers.map(function (t) {
+      return '<option value="' + esc(t) + '">' + esc(t) + '</option>';
+    }).join('');
+    $('inv-colour').innerHTML = cols.map(function (c) {
+      return '<option value="' + esc(c) + '">' + esc(c) + '</option>';
+    }).join('') || '<option value="">—</option>';
+  }
+  $('inv-device').addEventListener('change', fillTierSelects);
+
+  function renderInventory() {
+    if (!DEVICES.length || !$('inv-device').options.length) fillDeviceSelects();
+
+    // Stock summary — only lines that have ever had a unit.
+    $('inv-summary').innerHTML = STOCK.length ? STOCK.map(function (r) {
+      var low = Number(r.in_stock) === 0;
+      return '<tr>' +
+        '<td><strong>' + esc(r.device_name) + '</strong></td>' +
+        '<td>' + esc(r.storage_gb) + '</td>' +
+        '<td>' + esc(r.colour || '—') + '</td>' +
+        '<td class="num">' + (low ? '<span class="pill bad">0</span>' : esc(r.in_stock)) + '</td>' +
+        '<td class="num">' + esc(r.out_with_customers) + '</td></tr>';
+    }).join('') : '<tr><td colspan="5" class="empty">No units recorded yet. Add the phones you hold below.</td></tr>';
+
+    // Unit list.
+    var q = $('inv-search').value.trim().toLowerCase();
+    var st = $('inv-status').value;
+    var rows = INVENTORY.filter(function (u) {
+      if (st && u.status !== st) return false;
+      if (!q) return true;
+      return [u.imei, u.serial_no, u.device_name, u.storage_gb, u.colour, u.customer_email, u.supplier]
+        .join(' ').toLowerCase().indexOf(q) !== -1;
+    });
+
+    $('inv-rows').innerHTML = rows.length ? rows.map(function (u) {
+      var acts = (UNIT_NEXT[u.status] || []).map(function (n) {
+        return '<button class="btn sm" data-unit="' + esc(u.id) + '" data-unit-status="' + esc(n[0]) + '">' +
+          esc(n[1]) + '</button>';
+      }).join(' ');
+      return '<tr>' +
+        '<td><strong>' + esc(u.device_name) + '</strong><br><span style="color:var(--ink-dim);font-size:12.5px">' +
+          esc(u.storage_gb) + (u.colour ? ' · ' + esc(u.colour) : '') + '</span></td>' +
+        '<td style="font-family:ui-monospace,monospace">' + esc(u.imei || '—') + '</td>' +
+        '<td style="font-family:ui-monospace,monospace">' + esc(u.serial_no || '—') + '</td>' +
+        '<td>' + unitPill(u.status) + (u.condition_note
+            ? '<br><span style="color:var(--ink-dim);font-size:12px">' + esc(u.condition_note) + '</span>' : '') + '</td>' +
+        '<td>' + (u.subscription_id
+            ? '<a href="#" data-open="' + esc(u.subscription_id) + '">' + esc(u.customer_email || 'Open order') + '</a>'
+            : '<span style="color:var(--ink-faint)">—</span>') + '</td>' +
+        '<td class="num">' + money(u.purchase_cost_cents, 'AUD') +
+          (u.supplier ? '<br><span style="color:var(--ink-dim);font-size:12px">' + esc(u.supplier) + '</span>' : '') + '</td>' +
+        '<td>' + day(u.purchased_at || u.created_at) + '</td>' +
+        '<td class="act">' + acts + '</td></tr>';
+    }).join('') : '<tr><td colspan="8" class="empty">No units match.</td></tr>';
+  }
+  $('inv-search').addEventListener('input', renderInventory);
+  $('inv-status').addEventListener('change', renderInventory);
+
+  $('inv-add').addEventListener('click', function () {
+    var imei = $('inv-imei').value.replace(/\D/g, '');
+    if (imei && imei.length !== 15) { invMsg('bad', 'An IMEI is 15 digits. Leave it blank if you don’t have it yet.'); return; }
+    if (!$('inv-device').value || !$('inv-storage').value) { invMsg('bad', 'Pick a device and storage.'); return; }
+    var cost = $('inv-cost').value.trim();
+    var btn = $('inv-add');
+    btn.disabled = true; btn.textContent = 'Adding…';
+    invMsg('', '');
+    db.rpc('admin_inventory_add', {
+      p_device_id:  $('inv-device').value,
+      p_storage_gb: $('inv-storage').value,
+      p_colour:     $('inv-colour').value || null,
+      p_imei:       imei || null,
+      p_serial:     $('inv-serial').value.trim() || null,
+      p_cost_cents: cost ? Math.round(Number(cost) * 100) : null,
+      p_supplier:   $('inv-supplier').value.trim() || null,
+    }).then(function (res) {
+      btn.disabled = false; btn.textContent = 'Add unit';
+      if (res.error) {
+        invMsg('bad', /unique|duplicate/i.test(res.error.message)
+          ? 'That IMEI is already recorded.' : res.error.message);
+        return;
+      }
+      ['inv-imei', 'inv-serial', 'inv-cost', 'inv-supplier'].forEach(function (id) { $(id).value = ''; });
+      invMsg('ok', 'Added. It now counts as in stock.');
+      $('inv-imei').focus();
+      reload();
+    });
+  });
+
   /* ================================================= DRAWER ============ */
   function closeDrawer() {
     var s = document.querySelector('.scrim'), d = document.querySelector('.drawer');
@@ -627,6 +817,9 @@
           '<dt>Term</dt><dd>' + o.term_months + ' months · ' +
             money(o.monthly_amount_cents, 'AUD') + '/mo · total ' +
             money(o.monthly_amount_cents * o.term_months, 'AUD') + '</dd>' +
+          '<dt>RRP at order</dt><dd>' + (o.rrp_at_order_cents
+            ? money(o.rrp_at_order_cents, 'AUD') + ' · under by ' + money(o.rrp_at_order_cents - o.monthly_amount_cents * o.term_months, 'AUD')
+            : '—') + '</dd>' +
           '<dt>Status</dt><dd>' + statusPill(o.status) + '</dd>' +
           '<dt>Started</dt><dd>' + day(o.created_at) + '</dd>' +
           '<dt>Next charge</dt><dd>' + day(o.current_period_end) + '</dd>' +
@@ -650,6 +843,7 @@
         '</dl>' +
 
         '<h3>Fulfilment</h3><dl class="kv">' +
+          '<dt>IMEI</dt><dd>' + (o.imei ? '<code>' + esc(o.imei) + '</code>' : '<span class="pill warn">No unit recorded</span>') + '</dd>' +
           '<dt>Cleared</dt><dd>' + day(o.dispatched_at) + '</dd>' +
           '<dt>Posted</dt><dd>' + (o.shipped_at ? day(o.shipped_at) : 'Not yet') + '</dd>' +
           '<dt>Tracking</dt><dd>' + esc(o.tracking_ref || '—') + '</dd>' +
@@ -742,10 +936,27 @@
   document.addEventListener('click', function (e) {
     var el = e.target.closest ? e.target.closest(
       '[data-ship],[data-ship-go],[data-ship-cancel],[data-return],[data-grant],[data-open],' +
-      '[data-approve],[data-decline],[data-decline-go],[data-decline-cancel]') : null;
+      '[data-approve],[data-decline],[data-decline-go],[data-decline-cancel],[data-unit]') : null;
     if (!el) return;
 
     if (el.dataset.open) { openDrawer(el.dataset.open); return; }
+
+    if (el.dataset.unit) {
+      var next = el.dataset.unitStatus;
+      var note = null;
+      if (next === 'lost' || next === 'retired') {
+        note = window.prompt('Note for the record (what happened?):');
+        if (note === null) return;
+      } else if (!window.confirm('Move this unit to "' + (UNIT_STATUS[next] || [0, next])[1] + '"?')) return;
+      el.disabled = true;
+      db.rpc('admin_inventory_set_status', { p_unit_id: el.dataset.unit, p_status: next, p_note: note })
+        .then(function (res) {
+          el.disabled = false;
+          if (res.error) { alert(res.error.message); return; }
+          reload();
+        });
+      return;
+    }
 
     /* ---- approve: the first moment money moves ------------------------
      * Everything before this was free to undo. This charges a real card,
@@ -756,8 +967,21 @@
         'This charges ' + el.dataset.amount + ' to their card now and starts ' +
         'the plan. It cannot be undone from here — a mistake has to be ' +
         'refunded in Stripe.')) return;
+      var payload = { subscription_id: el.dataset.approve, action: 'approve' };
+      if (el.dataset.verified === '0') {
+        // The server refuses unverified approvals unless told, explicitly,
+        // that a person has checked the ID some other way.
+        var how = window.prompt(
+          'This customer has NOT passed the ID check.\n\n' +
+          'Sending a phone to an unverified person is how devices go missing. ' +
+          'If you have verified them another way, say how — it is recorded ' +
+          'against your account. Leave blank to stop.');
+        if (!how || how.trim().length < 5) return;
+        payload.force_unverified = true;
+        payload.reason = how.trim();
+      }
       el.disabled = true; el.textContent = 'Starting…';
-      callApproval({ subscription_id: el.dataset.approve, action: 'approve' }, el, 'Approve');
+      callApproval(payload, el, 'Approve');
       return;
     }
 
@@ -804,12 +1028,27 @@
       host.dataset.restore = host.innerHTML;
       host.innerHTML =
         '<div class="ship">' +
+          '<select data-unit-pick style="min-width:200px"><option value="">Loading units…</option></select>' +
           '<input type="text" placeholder="Tracking number" data-track ' +
             'autocomplete="off" spellcheck="false">' +
           '<button class="btn primary sm" data-ship-go="' + esc(el.dataset.ship) + '">Confirm posted</button>' +
           '<button class="btn sm" data-ship-cancel>Cancel</button>' +
-          '<span class="hint">Leave blank if there is no tracking. This can’t be undone.</span>' +
+          '<span class="hint">Pick the exact phone going out so its IMEI is on the order. ' +
+          'Leave tracking blank if there is none. This can’t be undone.</span>' +
         '</div>';
+      // Units in stock that match this order's device, storage and colour.
+      db.rpc('admin_inventory_available', { p_subscription_id: el.dataset.ship }).then(function (res) {
+        var sel = host.querySelector('[data-unit-pick]');
+        if (!sel) return;
+        var units = (res.data || []);
+        sel.innerHTML = units.length
+          ? units.map(function (u) {
+              return '<option value="' + esc(u.id) + '">IMEI ' + esc(u.imei || '—') +
+                (u.serial_no ? ' · ' + esc(u.serial_no) : '') + '</option>';
+            }).join('') + '<option value="">No unit — post without recording IMEI</option>'
+          : '<option value="">No matching unit in stock — add one under Inventory, or post without</option>';
+        if (res.error) sel.innerHTML = '<option value="">Could not load units: ' + esc(res.error.message) + '</option>';
+      });
       var f = host.querySelector('[data-track]');
       if (f) {
         f.focus();
@@ -832,10 +1071,17 @@
       var box = el.closest('.ship');
       var input = box ? box.querySelector('[data-track]') : null;
       var tracking = input ? input.value.trim() : '';
+      var pick = box ? box.querySelector('[data-unit-pick]') : null;
+      var unitId = pick && pick.value ? pick.value : null;
+      if (!unitId && !window.confirm(
+        'Post without recording which phone went out?\n\n' +
+        'The order will have no IMEI against it. You can still add the unit ' +
+        'later under Inventory, but it will not be linked to this order.')) return;
       el.disabled = true; el.textContent = 'Saving…';
       db.rpc('admin_mark_shipped', {
         p_subscription_id: el.dataset.shipGo,
         p_tracking: tracking,
+        p_unit_id: unitId,
       }).then(function (res) {
         if (res.error) {
           el.disabled = false; el.textContent = 'Confirm posted';

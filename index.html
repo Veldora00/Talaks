@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,380;9..144,440;9..144,560;9..144,640&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="assets/pricing.js"></script>
 <style>
   :root{
     --paper:#FFFFFF;
@@ -388,7 +389,6 @@
   supabaseClient
     .from('devices')
     .select('*')
-    .not('terms', 'is', null)
     .then(({ data, error }) => {
       if (error || !data) { console.error(error); return; }
 
@@ -402,10 +402,8 @@
       // Cheapest monthly across this device's terms. useWas prices it off the
       // pre-discount RRP so we can show the old price crossed out.
       const cheapestMonthly = (d, useWas) => {
-        const s = d.storages[0];
-        const rrp = useWas ? Number(s.rrp_was || 0) : Number(s.rrp);
-        if (!rrp) return null;
-        return Math.min(...Object.entries(d.terms).map(([m, pct]) => (rrp * pct) / Number(m)));
+        if (useWas) return null;       // sale display retired with the share model
+        return window.TalaksPricing.fromMonthly(d);
       };
 
       const allPrices = [];

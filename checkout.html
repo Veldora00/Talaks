@@ -48,6 +48,7 @@
   .loading{ text-align:center; padding:80px 0; color:var(--ink-faint); font-size:14px; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="assets/pricing.js"></script>
 </head>
 <body>
 
@@ -167,6 +168,7 @@
     <div class="summary-row"><span>Device</span><b id="sum-device">—</b></div>
     <div class="summary-row"><span>Storage / Colour</span><b id="sum-spec">—</b></div>
     <div class="summary-row"><span>Term</span><b id="sum-term">—</b></div>
+    <div class="summary-row"><span>Recommended retail price</span><b id="sum-rrp">—</b></div>
     <div class="summary-row"><span>Total over term</span><b id="sum-total">—</b></div>
     <div class="summary-row"><span>Monthly payment</span><b class="summary-total" id="sum-monthly">—</b></div>
   </div>
@@ -247,7 +249,7 @@
 
   async function renderPlan(){
     var res = await Talaks.client.from('devices').select('*')
-      .eq('id', plan.device).not('terms', 'is', null).maybeSingle();
+      .eq('id', plan.device).maybeSingle();
     var row = res.data;
     if (!row) { noPlan(); return false; }
 
@@ -255,9 +257,11 @@
     var colour = row.colours.find(function(c){ return c.name === plan.colour; });
     if (!storage || !colour) { noPlan(); return false; }
 
-    // Same rounding as the product page: monthly is the advertised whole-dollar
-    // figure, and the term total is derived from it so the two always agree.
-    var monthly = Math.round(storage.rrp * row.terms[plan.term] / plan.term);
+    // The explicit price for this tier and term — the same number the server
+    // reads when it records the order. If the tier doesn't offer this term
+    // (someone edited the URL), there is no plan to show.
+    var monthly = window.TalaksPricing.monthly(storage, plan.term);
+    if (monthly === null) { noPlan(); return false; }
     var total = monthly * plan.term;
 
     var img = document.getElementById('plan-img');
@@ -270,7 +274,8 @@
     document.getElementById('sum-device').textContent = row.name;
     document.getElementById('sum-spec').textContent = plan.storage + ' / ' + plan.colour;
     document.getElementById('sum-term').textContent = plan.term + ' months';
-    document.getElementById('sum-total').textContent = money(total);
+    document.getElementById('sum-rrp').textContent = money(storage.rrp);
+    document.getElementById('sum-total').textContent = money(total) + ' — under RRP by ' + money(storage.rrp - total);
     document.getElementById('sum-monthly').textContent = money(monthly) + '/mo';
     return true;
   }

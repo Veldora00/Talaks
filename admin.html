@@ -120,6 +120,12 @@
   .terms-grid input[type=number]:focus{ outline:none; border-color:var(--amber); }
   .terms-grid input[type=number]:disabled{ opacity:0.4; }
   .terms-note{ font-size:12.5px; color:var(--paper-faint); margin-top:14px; line-height:1.5; }
+  .tier-grid{ display:grid; grid-template-columns:1.1fr 1fr 1fr 1fr 1fr 32px; gap:8px 10px; align-items:start; margin-bottom:8px; }
+  .tier-grid input{ width:100%; }
+  .tier-head{ font-size:11.5px; color:var(--paper-faint); letter-spacing:0.03em; text-transform:uppercase; margin-bottom:6px; }
+  .tier-grid .hr{ display:block; font-size:11px; margin-top:4px; min-height:14px; color:var(--paper-faint); }
+  .tier-grid .hr.ok{ color:#4CC38A; }
+  .tier-grid .hr.bad{ color:#F0645A; font-weight:600; }
   .form-actions{ display:flex; gap:12px; margin-top:8px; }
   .form-actions .btn-primary{ width:auto; flex:1; }
   .form-actions .btn-ghost{ flex:0 0 auto; }
@@ -297,7 +303,7 @@
     }
     deviceList.innerHTML = '';
     DEVICES.forEach(d => {
-      const isLive = !!d.terms;
+      const isLive = (d.storages || []).some(t => t.monthly && Object.keys(t.monthly).length);
       const row = document.createElement('div');
       row.className = 'device-row';
       row.innerHTML =
@@ -331,40 +337,37 @@
   document.getElementById('add-device-btn').onclick = () => openForm(null);
 
   // ---------------- FORM ----------------
-  let formState = null; // { isNew, id, brand, name, sub, care_monthly, cover_desc, status, terms:{12,24,36}, storages:[], colours:[] }
+  let formState = null; // { isNew, id, brand, name, sub, status, storages:[{gb, rrp, m12, m24, m36}], colours:[] }
 
   function openForm(id){
     const existing = id ? DEVICES.find(d => d.id === id) : null;
+    // Each storage tier carries its own RRP and its own monthly price per
+    // term. Edited as plain dollars; nothing is derived. An empty term box
+    // means "not offered on this tier".
+    const tierIn = t => ({
+      gb: t.gb || '',
+      rrp: t.rrp == null ? '' : String(t.rrp),
+      m12: t.monthly && t.monthly['12'] != null ? String(t.monthly['12']) : '',
+      m24: t.monthly && t.monthly['24'] != null ? String(t.monthly['24']) : '',
+      m36: t.monthly && t.monthly['36'] != null ? String(t.monthly['36']) : '',
+    });
+    const blankTier = () => ({ gb:'', rrp:'', m12:'', m24:'', m36:'' });
     if (existing){
-      // Pricing is stored as a % of RRP so higher storage tiers price themselves,
-      // but it's edited here in plain $/month — convert on the way in.
-      const baseRrp = existing.storages && existing.storages[0] ? Number(existing.storages[0].rrp) : 0;
-      const monthlyFor = m => (existing.terms?.[m] != null && baseRrp)
-        ? String(Math.round((baseRrp * existing.terms[m] / m) * 100) / 100)
-        : '';
+      const tiers = (existing.storages || []).map(tierIn);
       formState = {
         isNew: false,
         id: existing.id,
         brand: existing.brand || '',
         name: existing.name || '',
         sub: existing.sub || '',
-        care_monthly: existing.care_monthly ?? '',
-        cover_desc: existing.cover_desc || '',
-        status: existing.terms ? 'live' : 'draft',
-        monthly: { 12: monthlyFor(12), 24: monthlyFor(24), 36: monthlyFor(36) },
-        care: {
-          12: existing.care_terms?.[12] ?? '',
-          24: existing.care_terms?.[24] ?? '',
-          36: existing.care_terms?.[36] ?? '',
-        },
-        storages: existing.storages && existing.storages.length ? JSON.parse(JSON.stringify(existing.storages)) : [{ gb:'', rrp:'', rrp_was:'' }],
+        status: tiers.some(t => t.m12 || t.m24 || t.m36) ? 'live' : 'draft',
+        storages: tiers.length ? tiers : [blankTier()],
         colours: existing.colours && existing.colours.length ? JSON.parse(JSON.stringify(existing.colours)) : [{ name:'', img:'' }],
       };
     } else {
       formState = {
-        isNew: true, id: '', brand: 'Apple', name: '', sub: '', care_monthly: '', cover_desc: '',
-        status: 'draft', monthly: { 12:'', 24:'', 36:'' }, care: { 12:'', 24:'', 36:'' },
-        storages: [{ gb:'', rrp:'', rrp_was:'' }], colours: [{ name:'', img:'' }],
+        isNew: true, id: '', brand: 'Apple', name: '', sub: '',
+        status: 'draft', storages: [blankTier()], colours: [{ name:'', img:'' }],
       };
     }
     renderForm();
@@ -385,7 +388,6 @@
       '</div>' +
       '<div class="field"><label>Name (shown to customers)</label><input id="f-name" value="' + escapeHtml(f.name) + '"></div>' +
       '<div class="field"><label>Description</label><textarea id="f-sub">' + escapeHtml(f.sub) + '</textarea></div>' +
-      '<div class="field"><label>Damage Cover — description (shown to customers)</label><input id="f-coverdesc" value="' + escapeHtml(f.cover_desc) + '"></div>' +
 
       '<fieldset><legend>Status</legend>' +
         '<div class="status-toggle">' +
@@ -394,24 +396,16 @@
         '</div>' +
       '</fieldset>' +
 
-      '<fieldset><legend>Pricing per term — in dollars per month</legend>' +
-        '<div class="terms-grid">' +
-          '<span></span><span></span>' +
-          '<span class="th">Plan price $/mo</span>' +
-          '<span class="th">Damage Cover $/mo</span>' +
-          [12,24,36].map(m =>
-            '<label>' + m + ' mo</label>' +
-            '<input type="checkbox" data-term-check="' + m + '" ' + (f.monthly[m] !== '' ? 'checked' : '') + '>' +
-            '<input type="number" step="0.01" placeholder="e.g. 57" data-term-val="' + m + '" value="' + escapeHtml(f.monthly[m]) + '" ' + (f.monthly[m] === '' ? 'disabled' : '') + '>' +
-            '<input type="number" step="0.01" placeholder="e.g. 14" data-care-val="' + m + '" value="' + escapeHtml(f.care[m]) + '" ' + (f.monthly[m] === '' ? 'disabled' : '') + '>'
-          ).join('') +
+      '<fieldset><legend>Storage tiers &amp; pricing — dollars per month</legend>' +
+        '<div class="tier-grid tier-head">' +
+          '<span>Storage</span><span>RRP $</span><span>12 mo</span><span>24 mo</span><span>36 mo</span><span></span>' +
         '</div>' +
-        '<p class="terms-note">Tick a term to offer it. Enter what the customer pays each month for the <strong>base storage tier</strong> — the larger tiers are priced up automatically at the same ratio. Leave a term unticked and it won\'t appear on the site (Samsung plans, for example, run 12 and 24 months only).</p>' +
-      '</fieldset>' +
-
-      '<fieldset><legend>Storage tiers &amp; price</legend><div id="storage-rows"></div>' +
+        '<div id="storage-rows"></div>' +
         '<button type="button" class="btn-add" id="add-storage">+ Add storage tier</button>' +
-        '<p class="terms-note">Drop the <strong>Price now</strong> to run a sale — every monthly price recalculates itself. Put the old price in <strong>Was</strong> and the site shows it crossed out with a “Save $X/mo” flag. Leave <strong>Was</strong> empty for no sale.</p></fieldset>' +
+        '<p class="terms-note">Each tier has its own RRP and its own monthly price per term. Leave a term blank and it is not offered on that tier. ' +
+          'Under each price the total over the term is shown against RRP — <strong>every total must stay below RRP</strong>. ' +
+          'That is the line that keeps Talaks outside the credit-licence regime, and the database refuses to save a price that crosses it.</p>' +
+      '</fieldset>' +
 
       '<fieldset><legend>Colours</legend><div id="colour-rows"></div>' +
         '<button type="button" class="btn-add" id="add-colour">+ Add colour</button></fieldset>' +
@@ -430,25 +424,7 @@
       formState.status = el.dataset.status;
       renderForm();
     });
-    formBox.querySelectorAll('[data-term-check]').forEach(cb => cb.onchange = () => {
-      const m = cb.dataset.termCheck;
-      const priceInput = formBox.querySelector('[data-term-val="' + m + '"]');
-      const careInput  = formBox.querySelector('[data-care-val="' + m + '"]');
-      priceInput.disabled = !cb.checked;
-      careInput.disabled  = !cb.checked;
-      if (!cb.checked){
-        priceInput.value = ''; careInput.value = '';
-        formState.monthly[m] = ''; formState.care[m] = '';
-      }
-    });
-    formBox.querySelectorAll('[data-term-val]').forEach(inp => inp.oninput = () => {
-      formState.monthly[inp.dataset.termVal] = inp.value;
-    });
-    formBox.querySelectorAll('[data-care-val]').forEach(inp => inp.oninput = () => {
-      formState.care[inp.dataset.careVal] = inp.value;
-    });
-
-    document.getElementById('add-storage').onclick = () => { formState.storages.push({ gb:'', rrp:'', rrp_was:'' }); renderStorageRows(); };
+    document.getElementById('add-storage').onclick = () => { formState.storages.push({ gb:'', rrp:'', m12:'', m24:'', m36:'' }); renderStorageRows(); };
     document.getElementById('add-colour').onclick = () => { formState.colours.push({ name:'', img:'' }); renderColourRows(); };
     document.getElementById('cancel-btn').onclick = () => { formBox.classList.add('hidden'); formBox.innerHTML=''; };
     document.getElementById('save-btn').onclick = saveDevice;
@@ -464,8 +440,16 @@
     if (brandEl) formState.brand = brandEl.value;
     const subEl = document.getElementById('f-sub');
     if (subEl) formState.sub = subEl.value;
-    const coverEl = document.getElementById('f-coverdesc');
-    if (coverEl) formState.cover_desc = coverEl.value;
+  }
+
+  // The total-vs-RRP readout under each price. Green under, red at or over.
+  function headroomHtml(monthly, term, rrp){
+    const m = Number(monthly), r = Number(rrp);
+    if (!(m > 0) || !(r > 0)) return '<span class="hr"></span>';
+    const total = m * term;
+    const over = total >= r;
+    return '<span class="hr ' + (over ? 'bad' : 'ok') + '">' +
+      '$' + total.toLocaleString('en-AU') + (over ? ' ≥ RRP' : ' (' + Math.round(100 * total / r) + '%)') + '</span>';
   }
 
   function renderStorageRows(){
@@ -473,17 +457,27 @@
     wrap.innerHTML = '';
     formState.storages.forEach((s, i) => {
       const row = document.createElement('div');
-      row.className = 'dyn-row';
+      row.className = 'tier-grid';
+      const cell = (key, term) =>
+        '<div><input type="number" step="1" placeholder="—" value="' + escapeHtml(s[key]) + '" data-s-key="' + key + '" data-s-idx="' + i + '">' +
+        headroomHtml(s[key], term, s.rrp) + '</div>';
       row.innerHTML =
-        '<input placeholder="e.g. 256GB" value="' + escapeHtml(s.gb) + '" data-s-gb="' + i + '">' +
-        '<input type="number" placeholder="Price now $" value="' + escapeHtml(s.rrp) + '" data-s-rrp="' + i + '">' +
-        '<input type="number" placeholder="Was $ (optional)" value="' + escapeHtml(s.rrp_was == null ? '' : s.rrp_was) + '" data-s-was="' + i + '">' +
+        '<div><input placeholder="256GB" value="' + escapeHtml(s.gb) + '" data-s-key="gb" data-s-idx="' + i + '"></div>' +
+        '<div><input type="number" step="1" placeholder="1399" value="' + escapeHtml(s.rrp) + '" data-s-key="rrp" data-s-idx="' + i + '"></div>' +
+        cell('m12', 12) + cell('m24', 24) + cell('m36', 36) +
         '<button type="button" class="dyn-remove" data-s-remove="' + i + '">×</button>';
       wrap.appendChild(row);
     });
-    wrap.querySelectorAll('[data-s-gb]').forEach(inp => inp.oninput = () => formState.storages[inp.dataset.sGb].gb = inp.value);
-    wrap.querySelectorAll('[data-s-rrp]').forEach(inp => inp.oninput = () => formState.storages[inp.dataset.sRrp].rrp = inp.value);
-    wrap.querySelectorAll('[data-s-was]').forEach(inp => inp.oninput = () => formState.storages[inp.dataset.sWas].rrp_was = inp.value);
+    wrap.querySelectorAll('[data-s-key]').forEach(inp => inp.oninput = () => {
+      formState.storages[inp.dataset.sIdx][inp.dataset.sKey] = inp.value;
+      // Re-render only the readouts, not the inputs, so focus is kept.
+      const s = formState.storages[inp.dataset.sIdx];
+      const rowEl = inp.closest('.tier-grid');
+      [['m12',12],['m24',24],['m36',36]].forEach(([k,t]) => {
+        const cellEl = rowEl.querySelector('[data-s-key="' + k + '"]').parentElement;
+        cellEl.querySelector('.hr').outerHTML = headroomHtml(s[k], t, s.rrp);
+      });
+    });
     wrap.querySelectorAll('[data-s-remove]').forEach(btn => btn.onclick = () => { formState.storages.splice(btn.dataset.sRemove,1); renderStorageRows(); });
   }
 
@@ -517,7 +511,6 @@
     const name = document.getElementById('f-name').value.trim();
     const brand = document.getElementById('f-brand').value.trim();
     const sub = document.getElementById('f-sub').value.trim();
-    const cover_desc = document.getElementById('f-coverdesc').value.trim();
 
     if (f.isNew && !id) id = slugify(name);
     if (!id || !name || !brand){
@@ -526,17 +519,36 @@
       return;
     }
 
-    const storages = f.storages
-      .filter(s => s.gb !== '' && s.rrp !== '')
-      .map(s => {
-        const tier = { gb: s.gb, rrp: Number(s.rrp) };
-        // Only keep a "was" price if it's actually higher than the current one,
-        // so a leftover or mistyped value can't show a fake discount.
-        if (s.rrp_was !== '' && s.rrp_was != null && Number(s.rrp_was) > Number(s.rrp)){
-          tier.rrp_was = Number(s.rrp_was);
+    const storages = [];
+    for (const s of f.storages){
+      if (s.gb === '' && s.rrp === '') continue;
+      const rrp = Number(s.rrp);
+      if (!s.gb || !(rrp > 0)){
+        msg.textContent = 'Every storage tier needs a size and an RRP.';
+        msg.classList.add('err'); msg.classList.remove('hidden');
+        return;
+      }
+      const tier = { gb: s.gb.trim(), rrp };
+      const monthly = {};
+      for (const [key, term] of [['m12',12],['m24',24],['m36',36]]){
+        if (s[key] === '' || s[key] == null) continue;
+        const m = Number(s[key]);
+        if (!(m > 0)){
+          msg.textContent = s.gb + ' at ' + term + ' months needs a price above zero, or leave it blank.';
+          msg.classList.add('err'); msg.classList.remove('hidden');
+          return;
         }
-        return tier;
-      });
+        if (m * term >= rrp){
+          msg.textContent = s.gb + ' at ' + term + ' months totals $' + (m * term).toLocaleString('en-AU') +
+            ' against an RRP of $' + rrp.toLocaleString('en-AU') + '. Every plan must total below RRP.';
+          msg.classList.add('err'); msg.classList.remove('hidden');
+          return;
+        }
+        monthly[String(term)] = m;
+      }
+      if (Object.keys(monthly).length) tier.monthly = monthly;
+      storages.push(tier);
+    }
     const colours = f.colours
       .filter(c => c.name !== '' && c.img !== '')
       .map(c => ({ name: c.name, img: c.img }));
@@ -547,48 +559,18 @@
       return;
     }
 
-    // Monthly dollars are converted back to a % of the base storage tier's RRP,
-    // which is what the site stores and what prices the larger tiers.
-    const baseRrp = Number(storages[0].rrp);
-    let terms = null;
-    let care_terms = null;
-    let care_monthly = null;
-
-    if (f.status === 'live'){
-      if (!baseRrp){
-        msg.textContent = 'The first storage tier needs an RRP before pricing can be worked out.';
-        msg.classList.add('err'); msg.classList.remove('hidden');
-        return;
-      }
-      terms = {};
-      care_terms = {};
-      for (const m of [12,24,36]){
-        const priced = f.monthly[m] !== '' && f.monthly[m] != null;
-        if (!priced) continue;
-        const monthly = Number(f.monthly[m]);
-        if (!(monthly > 0)){
-          msg.textContent = 'The ' + m + '-month plan price needs to be a number above zero.';
-          msg.classList.add('err'); msg.classList.remove('hidden');
-          return;
-        }
-        terms[m] = (monthly * m) / baseRrp;
-        if (f.care[m] !== '' && f.care[m] != null) care_terms[m] = Number(f.care[m]);
-      }
-      if (Object.keys(terms).length === 0){
-        msg.textContent = 'A live device needs at least one term priced.';
-        msg.classList.add('err'); msg.classList.remove('hidden');
-        return;
-      }
-      if (Object.keys(care_terms).length === 0) care_terms = null;
-      // Keep the old single-value column populated as a fallback for anything
-      // still reading it — use the longest priced term's cover price.
-      if (care_terms){
-        const longest = Math.max(...Object.keys(care_terms).map(Number));
-        care_monthly = care_terms[longest];
-      }
+    // "Live" is simply having something priced. A draft has tiers and RRPs
+    // but no monthly prices, so nothing on the site can sell it.
+    if (f.status === 'live' && !storages.some(t => t.monthly)){
+      msg.textContent = 'A live device needs at least one tier with at least one term priced.';
+      msg.classList.add('err'); msg.classList.remove('hidden');
+      return;
     }
+    if (f.status === 'draft') storages.forEach(t => { delete t.monthly; });
 
-    const payload = { id, brand, name, sub, care_monthly, care_terms, cover_desc, terms, storages, colours };
+    // `terms` was the old share-of-RRP column. Nothing reads it any more; it
+    // is cleared so a stale value can never be mistaken for pricing.
+    const payload = { id, brand, name, sub, terms: null, storages, colours };
 
     const saveBtn = document.getElementById('save-btn');
     saveBtn.disabled = true; saveBtn.textContent = 'Saving…';
@@ -597,33 +579,15 @@
       ? supabaseClient.from('devices').insert(body)
       : supabaseClient.from('devices').update(body).eq('id', f.id);
 
-    let { error } = await write(payload);
-
-    // The care_terms column is added by supabase-pricing-update.sql. If that
-    // hasn't been run yet, save everything else rather than losing the edit,
-    // and say plainly what's missing.
-    let coverSkipped = false;
-    if (error && /care_terms/.test(error.message || '')){
-      const { care_terms: _dropped, ...withoutCover } = payload;
-      ({ error } = await write(withoutCover));
-      coverSkipped = !error;
-    }
+    const { error } = await write(payload);
 
     saveBtn.disabled = false; saveBtn.textContent = 'Save device';
 
     if (error){
+      // The database guard raises a plain-English message on a cash-price
+      // breach; show it as-is rather than paraphrasing.
       msg.textContent = 'Save failed: ' + error.message;
       msg.classList.add('err'); msg.classList.remove('hidden');
-      return;
-    }
-
-    if (coverSkipped){
-      // Leave the form open so this stays on screen — loadDevices() clears it.
-      msg.textContent = 'Saved — but NOT the per-term Damage Cover prices, because the '
-        + 'care_terms column does not exist yet. Run step1-add-care-terms.sql in the Supabase '
-        + 'SQL Editor, then hit Save again.';
-      msg.className = 'save-msg err';
-      msg.classList.remove('hidden');
       return;
     }
 
