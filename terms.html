@@ -40,6 +40,14 @@
   .toc a:hover{ color:var(--brand-deep); }
   .highlight{ border:1px solid rgba(255,90,54,0.35); background:#FFF4EE; border-radius:12px; padding:18px 20px; font-size:14px; color:var(--ink-dim); }
   .highlight b{ color:var(--brand-deep); }
+  table.fees{ width:100%; border-collapse:collapse; font-size:14.5px; color:var(--ink-dim); margin:6px 0 18px; }
+  table.fees th{ text-align:left; font-size:12px; letter-spacing:0.04em; text-transform:uppercase; color:var(--ink-faint); font-weight:600; padding:9px 10px; border-bottom:1px solid var(--line-strong); }
+  table.fees td{ padding:11px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
+  table.fees td b{ color:var(--ink); font-weight:600; }
+  table.fees .amt{ white-space:nowrap; }
+  .worked{ border:1px solid var(--line); border-radius:12px; background:var(--paper-warm); padding:16px 18px; font-size:14px; margin:4px 0 18px; }
+  .worked p{ margin:0 0 8px; font-size:14px; }
+  .worked p:last-child{ margin-bottom:0; }
   footer{ border-top:1px solid var(--line); padding:32px 0; font-size:13px; color:var(--ink-faint); }
   footer a{ color:var(--ink-dim); text-decoration:none; }
   footer a:hover{ color:var(--ink); }
@@ -63,61 +71,177 @@
     <ol>
       <li><a href="#the-plan">1. How a Talaks plan works</a></li>
       <li><a href="#eligibility">2. Eligibility and identity verification</a></li>
-      <li><a href="#payments">3. Payments and pricing</a></li>
-      <li><a href="#ownership">4. Ownership and returns</a></li>
-      <li><a href="#damage-cover">5. Damage Cover &amp; fees</a></li>
-      <li><a href="#early-exit">6. Ending your plan early</a></li>
-      <li><a href="#non-return">7. Non-return and lost devices</a></li>
-      <li><a href="#general">8. General terms</a></li>
-      <li><a href="#contact">9. Contact</a></li>
+      <li><a href="#approval">3. Placing an order and our approval</a></li>
+      <li><a href="#cooling-off">4. Changing your mind</a></li>
+      <li><a href="#delivery">5. Delivery</a></li>
+      <li><a href="#payments">6. Payments, fees and charges</a></li>
+      <li><a href="#missed">7. Missed payments and hardship</a></li>
+      <li><a href="#obligations">8. Looking after the device</a></li>
+      <li><a href="#ownership">9. Ownership and warranty</a></li>
+      <li><a href="#repairs">10. Damage, loss and theft</a></li>
+      <li><a href="#early-exit">11. Ending your plan early</a></li>
+      <li><a href="#end-of-term">12. End of term and returning the device</a></li>
+      <li><a href="#non-return">13. Non-return fee</a></li>
+      <li><a href="#default">14. Default and what we may do</a></li>
+      <li><a href="#privacy">15. Privacy</a></li>
+      <li><a href="#general">16. General</a></li>
+      <li><a href="#contact">17. Contact</a></li>
     </ol>
   </div>
 
-  <div class="highlight" style="margin-top:28px;">These terms are a plain-language summary of how Talaks plans work. The full plan agreement provided at sign-up is the binding, governing document — if anything here conflicts with it, the plan agreement wins.</div>
+  <div class="highlight" style="margin-top:28px;">Your agreement with us is made up of two things: these terms, and the plan agreement issued when your order is approved, which sets out your device, term, monthly payment, early-exit charge and return date. If the two ever conflict, your plan agreement wins.</div>
 
   <h2 id="the-plan">1. How a Talaks plan works</h2>
-  <p>A Talaks plan is a fixed-term subscription to use a device — it is not a purchase, a lease-to-own arrangement, or a loan. You choose a term of 12 or 24 months at sign-up. Talaks remains the legal owner of the device for the entire term.</p>
-  <p>Total payments across your term are set at or below the device's retail cash price at the time you sign up. No interest is charged on any plan.</p>
+  <p>A Talaks plan is a fixed-term subscription to <i>use</i> a device. It is not a purchase, a rent-to-own or lease-to-own arrangement, a loan, or any other form of credit. You choose your term when you order. Most devices offer 12 or 24 months, and some offer 36 &mdash; the terms available are shown on each device&rsquo;s page, because they differ by device.</p>
+  <p>Talaks remains the owner of the device for the whole term, and at the end of it. You do not acquire any right, title or interest in the device at any point, and there is no option to buy it &mdash; not during the term, not at the end, not by paying anything extra.</p>
+  <p>Total payments across your term are set at or below the device&rsquo;s recommended retail price at the time you order. No interest is charged, and there is no establishment fee, deposit or bond.</p>
 
   <h2 id="eligibility">2. Eligibility and identity verification</h2>
-  <p>Approval requires a successful identity verification check. We don't run a credit check, and verification does not appear on your credit file. Meeting our minimum requirements doesn't guarantee approval — every application is assessed individually, and Talaks may decline an application at its discretion.</p>
+  <p>To hold a Talaks plan you must be at least 18, live in Australia, and have an Australian delivery address. Devices are not shipped outside Australia.</p>
+  <p>Approval requires a successful identity check, carried out through our verification provider (currently Didit). It involves a photo of your identity document and a short liveness check, both handled on their secure service rather than ours.</p>
+  <p>Documents we can accept include an Australian passport, an Australian driver licence, or a foreign passport. Where a document can be checked automatically and the result is clear, verification usually finishes in a couple of minutes.</p>
+  <p><b>If a document cannot be verified automatically</b> &mdash; the photo is unclear, the document is an unusual type, or the check is inconclusive &mdash; your order goes to manual review instead of being refused. We may then ask you for a second form of identification or a supporting document before we decide. We will always tell you exactly what we need and why.</p>
+  <p><b>We do not run a credit check</b> to approve an order, and applying does not create an enquiry on your credit file.</p>
+  <p>Meeting these requirements does not guarantee approval. Every order is assessed individually and we may decline one without giving reasons &mdash; though we will always tell you that we have, and nothing will have been charged.</p>
 
-  <h2 id="payments">3. Payments and pricing</h2>
-  <p>Your monthly payment is fixed for the length of your term and shown to you in full before you confirm your plan. Damage Cover is included in that price at no extra cost. Pricing for every device is set from its retail price at the time of your sign-up and does not change part-way through your term.</p>
-  <p>If a payment fails we will retry it automatically and let you know. A late payment fee of up to $19 may apply for each scheduled payment not received by its due date.</p>
+  <h2 id="approval">3. Placing an order and our approval</h2>
+  <p>Submitting an order is a request, not a completed agreement. <b>Nothing is charged when you place it.</b> Your card details are validated and stored by our payment provider, Stripe, and no payment is taken.</p>
+  <p>We review every order before accepting it, usually within one business day. If we accept it, we take your first monthly payment at that point, issue your plan agreement, and prepare the device for delivery. If we decline it, no payment is taken and there is nothing for you to do.</p>
+  <p>You can withdraw an order at any time while it is still being reviewed, from your account page, at no cost. Your agreement with us begins only when we accept the order and take the first payment.</p>
 
-  <h2 id="ownership">4. Ownership and returns</h2>
-  <p>Talaks stays the owner of the device for the life of the plan — there is no buy-out or purchase option during or at the end of a term. At the end of your term you can return the device in good working condition within the return window stated in your plan agreement, extend your current plan, or start a new plan on a new device.</p>
+  <h2 id="cooling-off">4. Changing your mind</h2>
+  <p>You have <b>14 days from the day your device is delivered</b> to change your mind &mdash; counted from delivery, not from when you ordered, so waiting for the post never eats into it. Tell us within that window and return the device unused and undamaged, in its original packaging with all accessories, and we will cancel the plan and refund the payment you have made.</p>
+  <p>You cover the cost of returning the device to us unless it arrived faulty or was not what you ordered, in which case we cover it. If the device comes back damaged or with parts missing, we may deduct the cost of putting that right from your refund.</p>
+  <p>This is in addition to any rights you have under the Australian Consumer Law, not instead of them.</p>
 
-  <h2 id="damage-cover">5. Damage Cover &amp; fees</h2>
-  <p>Damage Cover is included on every Talaks plan at no extra cost. There is nothing to add and nothing to opt into &mdash; it applies from the day your device arrives until the day it comes back to us.</p>
+  <h2 id="delivery">5. Delivery</h2>
+  <p>Delivery is free within Australia and usually takes three to five business days from approval. We will give you a tracking reference once the device is posted.</p>
+  <p>Delivery timeframes are estimates. We will keep you informed if something is delayed, but we are not responsible for delays caused by the carrier, weather, or other things outside our control.</p>
+  <p>Please check the device when it arrives and tell us within 48 hours if anything is damaged, missing, or not what you ordered.</p>
 
-  <p><b>What is covered.</b> Accidental damage during normal use &mdash; cracked or broken screens, liquid damage, and mechanical or technical faults that are not your doing. Each repair is subject to a fixed service fee, set by device and shown on that device&rsquo;s page before you subscribe:</p>
+  <h2 id="payments">6. Payments, fees and charges</h2>
+  <p>Your monthly payment is fixed for the length of your term and shown in full before you order. It covers the device and nothing else &mdash; there is no insurance, cover, protection plan or service subscription bundled into it, and no mobile service or SIM is included.</p>
+  <p>Payments are taken automatically from the card you provided, on the same date each month, starting on the day we approve your order. Pricing is set from the device&rsquo;s retail price at the time you order and does not change part-way through your term, whatever happens to the retail price afterwards.</p>
+  <p>The only charges that can ever apply on top of your monthly payment are the ones in this table. There are no others, and none of them is a surprise &mdash; every amount is either fixed and shown here, or the actual cost to us with nothing added.</p>
+
+  <table class="fees">
+    <thead><tr><th>Charge</th><th>Amount</th><th>When it applies</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><b>Late payment fee</b></td>
+        <td class="amt">Up to $19</td>
+        <td>Each scheduled payment not received by its due date.</td>
+      </tr>
+      <tr>
+        <td><b>Repair charge</b></td>
+        <td class="amt">At cost</td>
+        <td>Damage you are responsible for. Quoted before any work is booked; you can decline and use your own authorised repairer.</td>
+      </tr>
+      <tr>
+        <td><b>Early-exit charge</b></td>
+        <td class="amt">50% of your remaining payments</td>
+        <td>Ending your plan before the term is up. Falls every month you stay.</td>
+      </tr>
+      <tr>
+        <td><b>Non-return fee</b></td>
+        <td class="amt">RRP at order, less 50% of what you have paid</td>
+        <td>Device not posted back within 14 days of the return date, or lost, stolen, or damaged beyond reasonable repair.</td>
+      </tr>
+      <tr>
+        <td><b>Missing accessories</b></td>
+        <td class="amt">At cost</td>
+        <td>Box, cable or other included items not returned with the device.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p><b>What that looks like in practice.</b> Take an iPhone 17 256GB at $51 a month over 24 months, with a retail price of $1,399 when you ordered:</p>
+
+  <div class="worked">
+    <p><b>Leaving early at month 8.</b> Sixteen payments remain, so 16 &times; $51 = $816, and the early-exit charge is half of that: <b>$408</b>. Return the device and you are done. Leave at month 18 instead and it is <b>$153</b>; at month 21, <b>$77</b>.</p>
+    <p><b>Losing the device at month 8.</b> You have paid 8 &times; $51 = $408. The non-return fee is $1,399 &minus; $204 (half of what you have paid) = <b>$1,195</b>. At month 20 the same calculation gives $1,399 &minus; $510 = <b>$889</b>.</p>
+  </div>
+
+  <p>Both figures fall the longer you have been with us, because you have already paid for part of the device&rsquo;s life. The exact amounts for your plan are set out in your plan agreement before you confirm it.</p>
+
+  <h2 id="missed">7. Missed payments and hardship</h2>
+  <p>If a payment fails we will retry it and let you know. We would much rather hear from you than chase you.</p>
+  <p><b>If you are having trouble paying, contact us early.</b> We will work with you on a payment arrangement, a pause, or another way through. Talk to us before a payment fails if you can &mdash; it is far easier to arrange something in advance than to unwind arrears afterwards.</p>
+  <p>If payments remain unpaid and you have not made an arrangement with us, we may refer the amount to a debt collection agency and recover the reasonable costs of doing so.</p>
+
+  <h2 id="obligations">8. Looking after the device</h2>
+  <p>The device is ours, and you are looking after it for the length of your plan. While you have it, you agree to:</p>
   <ul>
-    <li>iPhone 17, Galaxy S26 &mdash; <b>$89</b> per repair</li>
-    <li>Galaxy S26 Plus &mdash; <b>$129</b> per repair</li>
-    <li>iPhone 18 Pro, Galaxy S26 Ultra &mdash; <b>$149</b> per repair</li>
-    <li>iPhone 18 Pro Max &mdash; <b>$169</b> per repair</li>
-    <li>iPhone Duo &mdash; <b>$299</b> per repair</li>
+    <li>use it normally and carefully, and keep it in good working order;</li>
+    <li>keep the original box and all included accessories until the plan ends;</li>
+    <li>not sell, hire out, pawn, give away, or offer the device as security for anything;</li>
+    <li>not modify it, remove or deface serial numbers or IMEI markings, or have it repaired by anyone other than the manufacturer or an authorised repairer;</li>
+    <li>not take it permanently out of Australia, and tell us if you move address;</li>
+    <li>not use it for anything unlawful;</li>
+    <li>keep your own backups of anything on it &mdash; we are not responsible for your data.</li>
   </ul>
-  <p>Cover applies up to the value of the device. Where a device is damaged repeatedly in a way that suggests misuse rather than accident, we may decline further repairs under Damage Cover.</p>
 
-  <p><b>What is not covered.</b> Loss and theft are not covered on any plan. If your device is lost or stolen you remain responsible for it and the Non-Return Fee in section 7 applies &mdash; report it to the police and to us as soon as you can, and we will help where we can. We also do not cover deliberate damage, or damage caused by misuse, unauthorised repair, or modification.</p>
+  <h2 id="ownership">9. Ownership and warranty</h2>
+  <p>Talaks owns the device throughout your plan and afterwards. You have no right, title or interest in it, and it must never be treated as yours to dispose of.</p>
+  <p>The manufacturer&rsquo;s warranty covers hardware faults during your term. You have two ways to use it, and either is fine:</p>
+  <ul>
+    <li><b>Take it in yourself</b> &mdash; an Apple Store, a Samsung service centre, or any repairer authorised by the manufacturer. Tell us first so we know the device is out, and send us the job reference when it is done.</li>
+    <li><b>Let us arrange it</b> &mdash; tell us what is wrong and we will organise it and post you a prepaid satchel.</li>
+  </ul>
+  <p>Either way a warranty fault costs you nothing. Please do not use an unauthorised repairer: it voids the manufacturer warranty and makes the repair your responsibility in full.</p>
+  <p>Nothing in these terms excludes, restricts or modifies any guarantee, right or remedy you have under the Australian Consumer Law. Those rights apply in addition to everything written here, and where anything in these terms conflicts with them, the law prevails.</p>
 
-  <p><b>Ordinary wear and tear is never charged.</b> Scuffs, light scratches and normal ageing are expected over a term and cost you nothing at return.</p>
+  <h2 id="repairs">10. Damage, loss and theft</h2>
+  <p>We do not sell, include, or imply any insurance product. This section sets out plainly who pays for what.</p>
+  <p><b>Faults that are not your doing.</b> If the device fails through a manufacturing or quality defect, you pay nothing. We arrange the repair or replacement and carry the cost.</p>
+  <p><b>Accidental damage.</b> Cracked screens, liquid damage and similar accidents are your responsibility. Tell us and we will arrange the repair through the manufacturer or an authorised repairer and pass on exactly what it costs us &mdash; no markup and no service fee on top. We will always quote you before any work is booked, and you may decline and arrange your own authorised repair instead.</p>
+  <p><b>Ordinary wear and tear is never charged.</b> Scuffs, light scratches and normal ageing are expected across a term and cost you nothing at return.</p>
+  <p><b>Loss and theft are not covered.</b> If the device is lost or stolen you remain responsible for it, your monthly payments continue, and the non-return fee in section 13 applies. Report it to the police and to us as soon as you can, and give us the police report number &mdash; we will help where we can. If you want protection against loss or theft, a contents or standalone device insurance policy is the right tool, and we would encourage you to consider one.</p>
+  <p><b>Deliberate damage and misuse.</b> Damage caused deliberately, by misuse, or by unauthorised repair or modification is your responsibility in full, at the actual cost of repair or, where the device cannot reasonably be repaired, the non-return fee.</p>
 
-  <h2 id="early-exit">6. Ending your plan early</h2>
-  <p>You can end your plan before your term is up by paying the early-exit charge disclosed in your plan agreement at sign-up. This is always a fixed, pre-agreed amount — never the sum of your remaining monthly payments.</p>
+  <h2 id="early-exit">11. Ending your plan early</h2>
+  <p>You can end your plan before the end of its term by telling us and paying the early-exit charge disclosed in your plan agreement, then returning the device under section 12.</p>
+  <p>The early-exit charge is <b>50% of the monthly payments remaining on your term</b> &mdash; never the full amount you would have paid had you stayed. It is calculated from your plan agreement, shown to you before you commit to leaving, and it falls every month you remain. Section 6 has worked examples.</p>
 
-  <h2 id="non-return">7. Non-return and lost devices</h2>
-  <p>If your plan ends and the device is not returned within 14 days of the return window closing, and no alternative arrangement has been agreed with you, a Non-Return Fee applies. It is calculated as the device&rsquo;s recommended retail price at the time you signed up, less 50% of the subscription payments you have made. The same fee applies if the device is lost or stolen, since neither is covered by Damage Cover.</p>
-  <p>We will always try to reach you and sort something out first &mdash; this is a last resort, not a first step.</p>
+  <h2 id="end-of-term">12. End of term and returning the device</h2>
+  <p>We will contact you before your term ends. You then have three choices:</p>
+  <ul>
+    <li><b>Return it</b> &mdash; send the device back and your plan simply ends. Your payments stop.</li>
+    <li><b>Extend</b> &mdash; continue on your current device at the rate we offer you at the time.</li>
+    <li><b>Upgrade</b> &mdash; return this device and start a fresh plan on a newer one. There is no upgrade fee.</li>
+  </ul>
+  <p>You must <b>post the device within 14 days</b> of your term ending, using the prepaid label we provide. What matters is the date you lodge it with the carrier, not the date it reaches us &mdash; keep the receipt, and once it is scanned in, delays in transit are ours to worry about, not yours. Before you send it, please:</p>
+  <ul>
+    <li>back up anything you want to keep;</li>
+    <li>sign out and turn off Find My iPhone, Activation Lock, Google FRP or the equivalent &mdash; a device still locked to your account cannot be accepted and will be treated as not returned until it is unlocked;</li>
+    <li>factory reset it and remove your SIM or eSIM;</li>
+    <li>include the box and all accessories.</li>
+  </ul>
+  <p>We check the device when it arrives and let you know the outcome. If there is damage beyond fair wear and tear, we will tell you what it is and what the repair costs before charging anything.</p>
 
-  <h2 id="general">8. General terms</h2>
-  <p>You must keep the device's original box and any included accessories until your plan ends — they're needed when you return, swap, or upgrade. A small replacement fee may apply if something's missing. Talaks may update these summary terms from time to time; material changes will be communicated to active subscribers. Your full plan agreement, issued at sign-up, remains the governing document for your specific plan.</p>
+  <h2 id="non-return">13. Non-return fee</h2>
+  <p>If your plan ends and the device has not been posted back within 14 days of the return date, and you have not agreed something else with us, a non-return fee applies. It is calculated as the device&rsquo;s recommended retail price at the time you ordered, <b>less 50% of the subscription payments you have made</b>.</p>
+  <p>The same fee applies where a device is lost or stolen, or comes back so damaged that it cannot reasonably be repaired. Worked examples are in section 6, and the figure for your own plan is in your plan agreement.</p>
+  <p>If the device is lost or stolen, tell us straight away. Your monthly payments stop once the non-return fee is settled &mdash; you are never asked to pay both the fee and the rest of the term.</p>
+  <p>We will always try to reach you and sort something out first. This is a last resort, not a first step, and if the device turns up afterwards we will work out a fair adjustment with you.</p>
 
-  <h2 id="contact">9. Contact</h2>
-  <p>Questions about these terms or your plan agreement can be sent to <a href="mailto:info@talaks.com" style="color:var(--brand-deep);">info@talaks.com</a>.</p>
+  <h2 id="default">14. Default and what we may do</h2>
+  <p>You are in default if you do not pay what is owed and have not agreed an arrangement with us, if you breach section 8, if information you gave us was false, if the device is used unlawfully, or if you permanently leave Australia without telling us.</p>
+  <p>If that happens and we cannot resolve it with you, we may end your plan, require the device to be returned, charge the non-return fee if it is not, and recover reasonable enforcement costs. Where a device is not returned after we have asked for it in writing, we may report it as retained without authority and ask the carrier network to block its IMEI.</p>
+  <p>We will always give you written notice and a reasonable opportunity to fix things first.</p>
+
+  <h2 id="privacy">15. Privacy</h2>
+  <p>We handle your personal information in accordance with the <i>Privacy Act 1988</i> (Cth) and the Australian Privacy Principles. What we collect, why, and who we share it with is set out in our <a href="privacy.html" style="color:var(--brand-deep);">Privacy Policy</a>.</p>
+  <p>Identity verification is carried out on our behalf by Didit, and payments are processed by Stripe. Your identity documents are handled on Didit&rsquo;s service and we receive the result of the check together with the details needed to confirm who you are. We never see or store your full card number &mdash; that stays with Stripe.</p>
+
+  <h2 id="general">16. General</h2>
+  <p>We may update these terms from time to time. If a change materially affects an active plan we will tell you in writing beforehand; otherwise the terms that applied when your plan started continue to apply to it.</p>
+  <p>You may not transfer your plan to anyone else without our written agreement. We may transfer our rights under it, and will tell you if we do.</p>
+  <p>If any part of these terms turns out to be unenforceable, the rest of them continue to apply. Not enforcing something once does not mean we give up the right to enforce it later.</p>
+  <p>These terms are governed by the laws of New South Wales, Australia.</p>
+
+  <h2 id="contact">17. Contact</h2>
+  <p>Questions about these terms, your plan agreement, a repair, a return, or a payment can be sent to <a href="mailto:info@talaks.com" style="color:var(--brand-deep);">info@talaks.com</a> and we will come back to you.</p>
 </main>
 
 <footer>

@@ -201,6 +201,12 @@
     <div class="totals" id="totals"></div>
 
     <div class="block">
+      <h2>Awaiting your approval <span class="n" id="n-app">0</span>
+        <span class="why">Card saved &middot; nothing charged yet</span></h2>
+      <div id="q-app"></div>
+    </div>
+
+    <div class="block">
       <h2>Ready to post <span class="n" id="n-ship">0</span>
         <span class="why">Paid for, not yet sent</span></h2>
       <div id="q-ship"></div>
@@ -231,6 +237,9 @@
       <input id="o-search" placeholder="Search name, email, device, tracking…">
       <select id="o-status">
         <option value="">All statuses</option>
+        <option value="pending_approval">Awaiting approval</option>
+        <option value="declined">Declined</option>
+        <option value="withdrawn">Cancelled by customer</option>
         <option value="active">Active</option>
         <option value="past_due">Past due</option>
         <option value="completed">Completed</option>
@@ -301,6 +310,9 @@
   }
 
   var STATUS = {
+    pending_approval: ['warn', 'Awaiting approval'],
+    declined:  ['bad',  'Declined'],
+    withdrawn: ['dim',  'Cancelled by customer'],
     active:    ['ok',   'Active'],
     past_due:  ['bad',  'Past due'],
     completed: ['dim',  'Completed'],
@@ -388,6 +400,7 @@
   function renderQueue() {
     var t = QUEUE.totals || {};
     $('totals').innerHTML = [
+      ['Awaiting approval', t.awaiting || 0],
       ['Active plans', t.active || 0],
       ['Monthly recurring', money(t.mrr_cents || 0, 'AUD')],
       ['Devices out', t.devices_out || 0],
@@ -397,15 +410,44 @@
       return '<div class="stat"><div class="k">' + s[0] + '</div><div class="v">' + s[1] + '</div></div>';
     }).join('');
 
-    var ship = QUEUE.to_ship || [], fail = QUEUE.payment_failed || [],
+    var app  = QUEUE.awaiting_approval || [],
+        ship = QUEUE.to_ship || [], fail = QUEUE.payment_failed || [],
         ver  = QUEUE.verification_waiting || [], ret = QUEUE.returns_due || [];
 
-    var total = ship.length + fail.length + ver.length + ret.length;
+    var total = app.length + ship.length + fail.length + ver.length + ret.length;
     var c = $('c-queue');
     c.textContent = total;
     c.classList.toggle('zero', total === 0);
 
+    $('n-app').textContent  = app.length;
     $('n-ship').textContent = ship.length;
+
+    /* Awaiting approval — the only place where saying no is free, because
+     * nothing has been charged. Show enough to decide without opening the
+     * drawer: what they want, what it commits us to, where it goes, and
+     * whether a card is actually on file. */
+    $('q-app').innerHTML = app.length ? app.map(function (r) {
+      return '<div class="row">' +
+        '<div class="main">' +
+          '<div class="name">' + esc(r.full_name || r.email) +
+            ' &nbsp;' + idPill(r.verification, r.verification_manual) + '</div>' +
+          '<div class="sub">' + esc(r.device) + ' · ' + esc(r.storage_gb || '') +
+            ' · ' + esc(r.colour || '') + ' — ' + r.term_months + ' months at ' +
+            money(r.monthly_amount_cents, 'AUD') + '/mo (' +
+            money(r.total_cents, 'AUD') + ' total)</div>' +
+          '<div class="addr">' + esc(r.address || 'No delivery address on file') +
+            (r.phone ? ' · ' + esc(r.phone) : '') + '</div>' +
+          (r.has_card ? '' :
+            '<div class="addr" style="color:var(--red)">No card saved — they never ' +
+            'finished checkout. Approving will fail.</div>') +
+        '</div>' +
+        '<div class="act">' +
+          '<span class="pill dim">Applied ' + ago(r.created_at) + '</span>' +
+          '<button class="btn primary sm" data-approve="' + esc(r.id) + '" ' +
+            'data-amount="' + money(r.monthly_amount_cents, 'AUD') + '">Approve</button>' +
+          '<button class="btn sm" data-decline="' + esc(r.id) + '">Decline</button>' +
+        '</div></div>';
+    }).join('') : '<div class="empty">No applications waiting.</div>';
     $('n-fail').textContent = fail.length;
     $('n-ver').textContent  = ver.length;
     $('n-ret').textContent  = ret.length;
@@ -471,7 +513,8 @@
       // Tint anything that needs a human: a failed payment, or a device that
       // has been paid for and not posted. Reading a status column row by row
       // is how you miss one.
-      var flag = (o.status === 'past_due') || (o.dispatched_at && !o.shipped_at);
+      var flag = (o.status === 'past_due') || (o.status === 'pending_approval')
+              || (o.dispatched_at && !o.shipped_at);
       return '<tr class="click' + (flag ? ' attention' : '') + '" data-open="' + esc(o.id) + '">' +
         '<td><strong>' + esc(o.full_name || '—') + '</strong><br>' +
           '<span style="color:var(--ink-dim);font-size:12.5px">' + esc(o.email) + '</span></td>' +
@@ -597,6 +640,15 @@
           '<dt>ID check</dt><dd>' + idPill(o.verification_status, o.verification_manual) + '</dd>' +
         '</dl>' +
 
+        '<h3>Approval</h3><dl class="kv">' +
+          '<dt>Card on file</dt><dd>' + (o.has_card ? 'Yes' : 'No') + '</dd>' +
+          '<dt>Approved</dt><dd>' + (o.approved_at ? day(o.approved_at) : 'Not yet') + '</dd>' +
+          (o.declined_at
+            ? '<dt>Declined</dt><dd>' + day(o.declined_at) + '</dd>' +
+              '<dt>Reason</dt><dd>' + esc(o.decline_reason || '—') + '</dd>'
+            : '') +
+        '</dl>' +
+
         '<h3>Fulfilment</h3><dl class="kv">' +
           '<dt>Cleared</dt><dd>' + day(o.dispatched_at) + '</dd>' +
           '<dt>Posted</dt><dd>' + (o.shipped_at ? day(o.shipped_at) : 'Not yet') + '</dd>' +
@@ -657,16 +709,92 @@
     if (m) m.innerHTML = '<div class="msg ' + kind + '">' + esc(text) + '</div>';
   }
 
+  /* Approve and decline both run in an edge function, not an RPC: creating a
+   * Stripe subscription needs the secret key, which must never be anywhere a
+   * browser can reach. The function re-checks is_admin() with this operator's
+   * own token before doing anything.
+   *
+   * Errors are unpacked carefully — functions.invoke() reports a non-2xx as a
+   * generic FunctionsHttpError, and the message that actually helps ("card
+   * declined", "no saved card") is in the JSON body. */
+  function callApproval(payload, btn, label) {
+    db.functions.invoke('approve-plan', { body: payload })
+      .then(function (res) {
+        if (res.error && res.error.context && typeof res.error.context.json === 'function') {
+          return res.error.context.json().then(
+            function (b) { throw new Error(b && b.error ? b.error : res.error.message); },
+            function () { throw new Error(res.error.message); });
+        }
+        if (res.error) throw new Error(res.error.message);
+        if (res.data && res.data.error) throw new Error(res.data.error);
+        reload();
+      })
+      .catch(function (err) {
+        btn.disabled = false; btn.textContent = label;
+        alert(err.message || 'That did not work. Nothing was charged.');
+      });
+  }
+
   /* ================================================= ACTIONS =========== */
   // One delegated listener for the whole page: the queue and the drawer both
   // render the same buttons, and re-binding after every re-render is how
   // dead buttons happen.
   document.addEventListener('click', function (e) {
     var el = e.target.closest ? e.target.closest(
-      '[data-ship],[data-ship-go],[data-ship-cancel],[data-return],[data-grant],[data-open]') : null;
+      '[data-ship],[data-ship-go],[data-ship-cancel],[data-return],[data-grant],[data-open],' +
+      '[data-approve],[data-decline],[data-decline-go],[data-decline-cancel]') : null;
     if (!el) return;
 
     if (el.dataset.open) { openDrawer(el.dataset.open); return; }
+
+    /* ---- approve: the first moment money moves ------------------------
+     * Everything before this was free to undo. This charges a real card,
+     * so it asks once, plainly, with the amount in the question. */
+    if (el.dataset.approve) {
+      if (!window.confirm(
+        'Approve this order?\n\n' +
+        'This charges ' + el.dataset.amount + ' to their card now and starts ' +
+        'the plan. It cannot be undone from here — a mistake has to be ' +
+        'refunded in Stripe.')) return;
+      el.disabled = true; el.textContent = 'Starting…';
+      callApproval({ subscription_id: el.dataset.approve, action: 'approve' }, el, 'Approve');
+      return;
+    }
+
+    /* ---- decline: free, but the customer is owed a reason ------------- */
+    if (el.dataset.decline) {
+      var dhost = el.closest('.act');
+      if (!dhost || dhost.querySelector('.ship')) return;
+      dhost.dataset.restore = dhost.innerHTML;
+      dhost.innerHTML =
+        '<div class="ship">' +
+          '<input type="text" placeholder="Reason for declining" data-why ' +
+            'autocomplete="off" style="width:230px">' +
+          '<button class="btn primary sm" data-decline-go="' + esc(el.dataset.decline) + '">Decline order</button>' +
+          '<button class="btn sm" data-decline-cancel>Cancel</button>' +
+          '<span class="hint">Nothing has been charged, so this costs them nothing. ' +
+          'The reason is kept on the order.</span>' +
+        '</div>';
+      var w = dhost.querySelector('[data-why]');
+      if (w) w.focus();
+      return;
+    }
+
+    if (el.hasAttribute('data-decline-cancel')) {
+      var dh = el.closest('.act');
+      if (dh && dh.dataset.restore) dh.innerHTML = dh.dataset.restore;
+      return;
+    }
+
+    if (el.dataset.declineGo) {
+      var dbox = el.closest('.ship');
+      var why = dbox ? dbox.querySelector('[data-why]').value.trim() : '';
+      if (why.length < 5) { alert('Give a real reason — at least a few words.'); return; }
+      el.disabled = true; el.textContent = 'Declining…';
+      callApproval({ subscription_id: el.dataset.declineGo, action: 'decline', reason: why },
+                   el, 'Decline order');
+      return;
+    }
 
     // Step one: swap the button for a real field, in place. Nothing is
     // written yet — this is still reversible.

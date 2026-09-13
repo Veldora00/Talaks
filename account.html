@@ -199,6 +199,9 @@
 
   // Didit statuses are stored verbatim, so map rather than string-compare in logic.
   var PLAN_STYLES = {
+    pending_approval: { pill:'working', label:'Being reviewed' },
+    declined:  { pill:'pending', label:'Not approved' },
+    withdrawn: { pill:'pending', label:'Cancelled by you' },
     active:    { pill:'done',    label:'Active' },
     pending:   { pill:'working', label:'Awaiting payment' },
     past_due:  { pill:'failed',  label:'Payment failed' },
@@ -232,7 +235,7 @@
         ' &middot; ' + sub.storage_gb + ' &middot; ' + sub.colour + '</b></div>' +
       '<div class="kv"><span>Monthly</span><b>' + money(sub.monthly_amount_cents) + '/mo</b></div>' +
       '<div class="kv"><span>Term</span><b>' + sub.term_months + ' months</b></div>' +
-      '<div class="kv"><span>Damage Cover</span><b>Included</b></div>';
+      '';
 
     if (sub.status === 'active') {
       if (sub.current_period_end) rows += '<div class="kv"><span>Next payment</span><b>' + shortDate(sub.current_period_end) + '</b></div>';
@@ -242,6 +245,23 @@
     } else if (sub.status === 'past_due') {
       rows += '<p class="form-note" style="color:var(--danger);">A payment didn\u2019t go through. Update your card and we\u2019ll retry automatically — ' +
               'email <a href="mailto:info@talaks.com" style="color:var(--brand-deep);">info@talaks.com</a> if you need a hand.</p>';
+    } else if (sub.status === 'pending_approval') {
+      rows += '<p class="form-note"><b>Nothing has been charged.</b> We check every order before taking a ' +
+              'payment, usually within one business day. We’ll email you either way — if we go ahead, ' +
+              'your first payment is taken then and your device ships.</p>' +
+              // A waiting customer should never need to email us to get out.
+              // Nothing has been charged, so this costs no one anything.
+              '<div class="form-error" id="cancel-error"></div>' +
+              '<button class="signout-btn" id="cancel-btn" style="margin-top:4px;">' +
+              'Cancel this order</button>';
+    } else if (sub.status === 'withdrawn') {
+      rows += '<p class="form-note">You cancelled this order, and nothing was charged. ' +
+              '<a href="catalog.html" style="color:var(--brand-deep);">Browse devices</a> ' +
+              'whenever you want to start again.</p>';
+    } else if (sub.status === 'declined') {
+      rows += '<p class="form-note">We weren’t able to go ahead with this order, and you haven’t been ' +
+              'charged anything. Email <a href="mailto:info@talaks.com" style="color:var(--brand-deep);">info@talaks.com</a> ' +
+              'if you’d like to know more or want to try again.</p>';
     } else if (sub.status === 'pending') {
       rows += '<p class="form-note">We\u2019re waiting on your first payment to clear. This page updates on its own once it does.</p>';
     } else if (sub.status === 'completed') {
@@ -249,6 +269,31 @@
     }
 
     body.innerHTML = rows;
+
+    // Bound after the HTML is written, because the button only exists for a
+    // pending order and the panel is re-rendered whenever the plan changes.
+    var cancelBtn = document.getElementById('cancel-btn');
+    if (cancelBtn) {
+      cancelBtn.addEventListener('click', function () {
+        if (!confirm('Cancel this order?\n\nNothing has been charged, so there is no fee. ' +
+                     'You can order again any time.')) return;
+        cancelBtn.disabled = true;
+        cancelBtn.textContent = 'Cancelling…';
+        Talaks.client.rpc('cancel_my_application').then(function (res) {
+          if (res.error) {
+            cancelBtn.disabled = false;
+            cancelBtn.textContent = 'Cancel this order';
+            var err = document.getElementById('cancel-error');
+            if (err) {
+              err.textContent = res.error.message || 'Could not cancel. Please try again.';
+              err.style.display = 'block';
+            }
+            return;
+          }
+          location.reload();
+        });
+      });
+    }
   }
 
   var STATUS_STYLES = {

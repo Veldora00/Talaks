@@ -65,7 +65,7 @@
 <div class="checkout" id="checkout" style="display:none;">
 
   <h1 class="page-title">Confirm your plan</h1>
-  <p class="lede">Three steps before your device ships — where it goes, who you are, then payment.</p>
+  <p class="lede">Three steps before your device ships — where it goes, who you are, then your card. Nothing is charged until we confirm your order.</p>
 
   <div class="rail">
     <div class="rail-step active" id="rail-1"><span class="dot">1</span><span class="label">Delivery</span></div>
@@ -154,10 +154,12 @@
       <span class="step-num idle" id="num-3">3</span> Set up payment
       <span class="status-pill pending" id="pay-status" style="margin-left:auto;">Locked</span>
     </div>
-    <p class="step-copy">Your card is entered directly on Stripe’s secure page — it never touches Talaks’ servers.</p>
+    <p class="step-copy"><b>We won’t charge anything today.</b> Your card is entered on Stripe’s secure page — it never
+      touches Talaks’ servers — and we hold it while we review your order. Talaks confirms every order before the first
+      payment is taken, usually within one business day. If we can’t fill it, you’re charged nothing at all.</p>
     <p class="form-note" id="pay-note">Your plan runs for its full term and then stops. It does not roll on month to month, and there is nothing to cancel at the end.</p>
     <div class="form-error" id="p-error"></div>
-    <button class="action-btn" id="btn-pay" onclick="startPayment()" disabled>Continue to payment</button>
+    <button class="action-btn" id="btn-pay" onclick="startPayment()" disabled>Continue to card details</button>
   </div>
 
   <div class="card">
@@ -165,7 +167,6 @@
     <div class="summary-row"><span>Device</span><b id="sum-device">—</b></div>
     <div class="summary-row"><span>Storage / Colour</span><b id="sum-spec">—</b></div>
     <div class="summary-row"><span>Term</span><b id="sum-term">—</b></div>
-    <div class="summary-row"><span>Damage Cover</span><b>Included</b></div>
     <div class="summary-row"><span>Total over term</span><b id="sum-total">—</b></div>
     <div class="summary-row"><span>Monthly payment</span><b class="summary-total" id="sum-monthly">—</b></div>
   </div>
@@ -179,7 +180,7 @@
       <a href="blog.html">Journal</a>
       <a href="faq.html">FAQs</a>
       <a href="terms.html">Terms of Use</a>
-      <a href="terms.html#damage-cover">Damage Cover &amp; fees</a>
+      <a href="terms.html#repairs">Damage and repairs</a>
       <a href="privacy.html">Privacy Policy</a>
       <a href="mailto:info@talaks.com">info@talaks.com</a>
     </div>
@@ -495,39 +496,45 @@
       var body = await res.json();
 
       if (!res.ok) {
-        btn.disabled = false; btn.textContent = 'Continue to payment';
-        show('p-error', body.error || 'Could not start payment. Please try again.');
+        btn.disabled = false; btn.textContent = 'Continue to card details';
+        show('p-error', body.error || 'Could not submit your order. Please try again.');
         return;
       }
       location.href = body.url;
     } catch (e) {
-      btn.disabled = false; btn.textContent = 'Continue to payment';
+      btn.disabled = false; btn.textContent = 'Continue to card details';
       show('p-error', 'Could not reach the server. Check your connection and try again.');
     }
   }
 
-  function markPaid(){
+  /* The order is in, and nothing has been charged. Say that plainly — someone
+   * who has just typed a card number assumes they have been billed unless
+   * told otherwise, and a surprise charge later is far worse than none now. */
+  function markApplied(){
     var pill = document.getElementById('pay-status');
     pill.className = 'status-pill done';
-    pill.textContent = 'Active';
+    pill.textContent = 'Submitted';
     var btn = document.getElementById('btn-pay');
-    btn.textContent = 'Payment set up';
+    btn.textContent = 'Order submitted';
     btn.disabled = true;
     setRail(3, 'done');
     document.getElementById('pay-note').innerHTML =
-      '<b style="color:var(--teal);">You\u2019re all set.</b> We\u2019ll email your confirmation and get the device on its way. ' +
-      'You can see your plan any time in <a href="account.html" style="color:var(--brand-deep);">your account</a>.';
+      '<b style="color:var(--teal);">Order received \u2014 nothing has been charged.</b> ' +
+      'We review every order before taking a payment, usually within one business day. ' +
+      'We\u2019ll email you either way; if we go ahead, your first payment is taken then and the ' +
+      'device ships. You can follow it in <a href="account.html" style="color:var(--brand-deep);">your account</a>.';
   }
 
-  /* A completed Stripe checkout means the payment was submitted, not that it
-   * settled. Our webhook flips the row to active on invoice.paid, so wait for
-   * that rather than declaring success off the redirect alone. */
-  function pollSubscription(sessionId){
+  /* Back from Stripe. The redirect only means the form was submitted; the card
+   * is recorded by a webhook a moment later. Poll our own row rather than
+   * trusting the URL — same as before. What changed is which state we wait
+   * for, and that none of it is a payment. */
+  function pollApplication(sessionId){
     var pill = document.getElementById('pay-status');
     pill.className = 'status-pill working';
-    pill.textContent = 'Confirming…';
+    pill.textContent = 'Submitting…';
     var btn = document.getElementById('btn-pay');
-    btn.disabled = true; btn.textContent = 'Confirming your payment…';
+    btn.disabled = true; btn.textContent = 'Submitting your order…';
 
     var tries = 0;
     var handle = setInterval(async function(){
@@ -536,19 +543,21 @@
       q = sessionId ? q.eq('checkout_session_id', sessionId) : q.eq('user_id', user.id);
       var res = await q.order('created_at', { ascending: false }).limit(1).maybeSingle();
 
-      if (res.data && res.data.status === 'active') {
+      var st = res.data && res.data.status;
+      if (st === 'pending_approval' || st === 'active') {
         clearInterval(handle);
         try { sessionStorage.removeItem(PLAN_KEY); } catch (e) {}
-        markPaid();
+        markApplied();
         return;
       }
-      if (tries > 40) {
+      if (tries > 20) {
         clearInterval(handle);
         pill.className = 'status-pill working';
-        pill.textContent = 'Processing';
+        pill.textContent = 'Received';
         document.getElementById('pay-note').textContent =
-          'Your payment is still being confirmed by your bank. This can take a few minutes — ' +
-          'we\u2019ll email you once it clears, and your account page will update automatically.';
+          'Your order is in and nothing has been charged. It\u2019s still being recorded on our ' +
+          'side, which can take a minute. Your account page will update automatically, and ' +
+          'we\u2019ll email you once we\u2019ve reviewed it.';
       }
     }, 3000);
   }
@@ -597,9 +606,9 @@
       // Back from Stripe. The subscription only truly starts when the webhook
       // sees invoice.paid, so poll our own row rather than trusting the URL.
       var q = new URLSearchParams(location.search);
-      if (q.get('paid') === '1') { pollSubscription(q.get('session_id')); }
+      if (q.get('applied') === '1') { pollApplication(q.get('session_id')); }
       else if (q.get('payment') === 'cancelled') {
-        show('p-error', 'Payment was cancelled — nothing has been charged. You can try again whenever you\u2019re ready.');
+        show('p-error', 'Cancelled — no card was saved and nothing has been charged. You can pick it up again whenever you\u2019re ready.');
       }
       return;
     }
