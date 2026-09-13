@@ -391,6 +391,8 @@
     .select('*')
     .then(({ data, error }) => {
       if (error || !data) { console.error(error); return; }
+      // A device with no priced term is a draft: not for sale, not shown.
+      data = data.filter(window.TalaksPricing.isLive);
 
       const grid = document.getElementById('featured-grid');
       grid.innerHTML = '';
@@ -416,12 +418,17 @@
         const a = document.createElement('a');
         a.className = 'device-tile';
         a.href = 'product.html?device=' + encodeURIComponent(d.id);
+        const plan = window.TalaksPricing.fromPlan(d);
+        const rrpWas = plan ? window.TalaksPricing.rrpWas(plan.storage) : null;
         a.innerHTML =
-          (onSale ? '<span class="save-flag">Save ' + money(was - now) + '/mo</span>' : '') +
+          (onSale ? '<span class="save-flag">Save ' + money(was - now) + '/mo</span>' :
+           d.admin_only ? '<span class="save-flag">Admin only</span>' : '') +
           '<div class="thumb"><img src="' + d.colours[0].img + '" alt="' + d.name + '" onerror="this.onerror=null;this.src=\'' + placeholder + '\'"></div>' +
           '<div class="dn">' + d.name + '</div>' +
           '<div class="dp">' + (onSale ? '<s>' + money(was) + '</s>' : '') +
-            'From <b>' + money(now) + '</b>/month</div>';
+            'From <b>' + money(now) + '</b>/month</div>' +
+          (rrpWas ? '<div class="dp" style="font-size:12.5px;margin-top:2px">RRP <s>' + money(rrpWas) + '</s> ' +
+            money(plan.storage.rrp) + '</div>' : '');
         grid.appendChild(a);
       });
 

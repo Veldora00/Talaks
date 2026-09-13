@@ -313,6 +313,7 @@
           '<span class="dname">' + escapeHtml(d.name) + '</span>' +
           '<span class="did">' + escapeHtml(d.id) + '</span>' +
           '<span class="badge ' + (isLive ? 'live' : 'draft') + '">' + (isLive ? 'Live' : 'Draft') + '</span>' +
+          (d.admin_only ? '<span class="badge draft">Admin only</span>' : '') +
         '</div>' +
         '<div class="row-actions">' +
           '<button class="btn-sm" data-edit="' + escapeHtml(d.id) + '">Edit</button>' +
@@ -367,6 +368,7 @@
         name: existing.name || '',
         sub: existing.sub || '',
         status: tiers.some(t => t.m12 || t.m24 || t.m36) ? 'live' : 'draft',
+        adminOnly: existing.admin_only === true,
         storages: tiers.length ? tiers : [blankTier()],
         colours: existing.colours && existing.colours.length ? JSON.parse(JSON.stringify(existing.colours)) : [{ name:'', img:'' }],
       };
@@ -374,6 +376,7 @@
       formState = {
         isNew: true, id: '', brand: 'Apple', name: '', sub: '',
         status: 'draft', storages: [blankTier()], colours: [{ name:'', img:'' }],
+        adminOnly: false,
       };
     }
     renderForm();
@@ -413,6 +416,14 @@
           'That is the line that keeps Talaks outside the credit-licence regime, and the database refuses to save a price that crosses it.</p>' +
         '<p class="terms-note"><strong>On sale?</strong> Put the price a buyer pays <em>today</em> in RRP (that is what the totals are checked against) and the old, higher price in the small <em>was</em> box under it — it shows crossed out on the site. ' +
           'Same for monthly: current price on top, the old higher price in <em>was</em>. A <em>was</em> that is not higher than the current price is refused; a made-up discount is misleading conduct under the ACL.</p>' +
+      '</fieldset>' +
+
+      '<fieldset><legend>Visibility</legend>' +
+        '<label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer;font-size:14px">' +
+          '<input type="checkbox" id="f-admin-only" ' + (f.adminOnly ? 'checked' : '') + ' style="margin-top:3px">' +
+          '<span><strong>Admin only.</strong> Hidden from customers by the database itself — only accounts in the admin list can see or order it, ' +
+          'and they can order it as many times as they like. Use this for the $10 test product; never for a real device.</span>' +
+        '</label>' +
       '</fieldset>' +
 
       '<fieldset><legend>Colours</legend><div id="colour-rows"></div>' +
@@ -603,11 +614,12 @@
       msg.classList.add('err'); msg.classList.remove('hidden');
       return;
     }
-    if (f.status === 'draft') storages.forEach(t => { delete t.monthly; });
+    if (f.status === 'draft') storages.forEach(t => { delete t.monthly; delete t.monthly_was; });
+    const adminOnly = !!(document.getElementById('f-admin-only') || {}).checked;
 
     // `terms` was the old share-of-RRP column. Nothing reads it any more; it
     // is cleared so a stale value can never be mistaken for pricing.
-    const payload = { id, brand, name, sub, terms: null, storages, colours };
+    const payload = { id, brand, name, sub, terms: null, storages, colours, admin_only: adminOnly };
 
     const saveBtn = document.getElementById('save-btn');
     saveBtn.disabled = true; saveBtn.textContent = 'Saving…';

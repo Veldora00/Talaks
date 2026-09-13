@@ -178,7 +178,8 @@
         grid.innerHTML = '<div class="empty-note">Couldn\'t load devices right now. Please refresh, or email info@talaks.com.</div>';
         return;
       }
-      DEVICES = data;
+      // A device with no priced term is a draft: not for sale, not shown.
+      DEVICES = data.filter(window.TalaksPricing.isLive);
       renderBrands();
 
       // Deep link: catalog.html?brand=Samsung opens that brand directly.
@@ -251,14 +252,19 @@
       const a = document.createElement('a');
       a.className = 'model-card';
       a.href = 'product.html?device=' + encodeURIComponent(d.id);
+      const plan = window.TalaksPricing.fromPlan(d);
+      const rrpWas = plan ? window.TalaksPricing.rrpWas(plan.storage) : null;
       a.innerHTML =
-        (discounted ? '<span class="save-flag">Save ' + money(was - now) + '/mo</span>' : '') +
+        (discounted ? '<span class="save-flag">Save ' + money(was - now) + '/mo</span>' :
+         d.admin_only ? '<span class="save-flag">Admin only</span>' : '') +
         '<div class="thumb"><img src="' + escapeHtml(d.colours[0].img) + '" alt="' + escapeHtml(d.name) + '" onerror="this.onerror=null;this.src=\'' + PLACEHOLDER_IMG + '\'"></div>' +
         '<div class="mi">' +
           '<div class="mn">' + escapeHtml(d.name) + '</div>' +
           '<div class="ms">' + escapeHtml((d.sub || '').split('.')[0]) + '.</div>' +
           '<div class="mp">' + (discounted ? '<s>' + money(was) + '</s>' : '') +
             'From ' + money(now) + '/month</div>' +
+          (rrpWas ? '<div class="mp" style="font-size:12.5px">RRP <s>' + money(rrpWas) + '</s> ' +
+            money(plan.storage.rrp) + '</div>' : '') +
         '</div>';
       grid.appendChild(a);
     });

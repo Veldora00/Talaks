@@ -125,6 +125,7 @@ window.TalaksPricing = (function () {
     headroom: headroom,
     sellableStorages: sellableStorages,
     termsForDevice: termsForDevice,
+    fromPlan: fromPlan,
     fromMonthly: fromMonthly,
     fromMonthlyWas: fromMonthlyWas,
     rrpWas: rrpWas,

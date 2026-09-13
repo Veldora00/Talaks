@@ -349,6 +349,7 @@
     document.getElementById('crumb-name').textContent = device.name;
     document.getElementById('p-name').textContent = device.name;
     document.getElementById('p-sub').textContent = device.sub;
+    document.querySelector('.stage-badge').textContent = device.admin_only ? 'Admin only — test product' : 'Brand new';
     document.getElementById('stage-img').src = colour.img;
     document.getElementById('stage-img').alt = device.name + ' in ' + colour.name;
     document.getElementById('stage-img').onerror = function(){ this.onerror=null; this.src = PLACEHOLDER_IMG; };

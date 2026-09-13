@@ -275,7 +275,7 @@
     document.getElementById('sum-spec').textContent = plan.storage + ' / ' + plan.colour;
     document.getElementById('sum-term').textContent = plan.term + ' months';
     document.getElementById('sum-rrp').textContent = money(storage.rrp);
-    document.getElementById('sum-total').textContent = money(total) + ' — under RRP by ' + money(storage.rrp - total);
+    document.getElementById('sum-total').textContent = money(total);
     document.getElementById('sum-monthly').textContent = money(monthly) + '/mo';
     return true;
   }
