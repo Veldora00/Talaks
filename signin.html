@@ -102,7 +102,7 @@
       </div>
       <div class="field">
         <label for="su-password">Password</label>
-        <input type="password" id="su-password" autocomplete="new-password" required minlength="8" placeholder="At least 8 characters">
+        <input type="password" id="su-password" autocomplete="new-password" required minlength="10" placeholder="10+ chars, with a capital, number and symbol">
       </div>
       <div class="form-error" id="su-error"></div>
       <div class="form-ok" id="su-ok"></div>
@@ -194,6 +194,38 @@
     return false;
   }
 
+  /* Password rules, checked here for a fast, specific message.
+   *
+   * This is a courtesy, not a control: anything in the browser can be skipped
+   * by posting straight to the API. The rule that actually binds is set in
+   * Supabase (Authentication → Providers → Email), and these two must say the
+   * same thing or someone gets told their password is fine and then rejected.
+   *
+   * Ten characters rather than eight. Length beats complexity for real
+   * resistance to guessing, and eight with a symbol on the end is the shape
+   * every cracking dictionary already knows.
+   */
+  function passwordProblem(pw){
+    if (pw.length < 10)        return 'Use at least 10 characters.';
+    if (!/[a-z]/.test(pw))     return 'Include a lowercase letter.';
+    if (!/[A-Z]/.test(pw))     return 'Include a capital letter.';
+    if (!/[0-9]/.test(pw))     return 'Include a number.';
+    if (!/[^A-Za-z0-9]/.test(pw)) return 'Include a symbol, like ! or #.';
+    return null;
+  }
+
+  /* Live, quiet feedback while they type — but only after they have typed
+     something, so the form doesn't greet them with an error. */
+  (function watchPassword(){
+    var field = document.getElementById('su-password');
+    if (!field) return;
+    field.addEventListener('input', function () {
+      if (!field.value) { show('su-error', ''); return; }
+      var problem = passwordProblem(field.value);
+      show('su-error', problem || '');
+    });
+  })();
+
   /* Where the confirmation link should drop someone once they click it.
    *
    * Left unset, Supabase builds that link from the project's Site URL — one
@@ -219,6 +251,9 @@
     var fullName = document.getElementById('su-name').value.trim();
     var email = document.getElementById('su-email').value.trim();
     var password = document.getElementById('su-password').value;
+
+    var weak = passwordProblem(password);
+    if (weak) { show('su-error', weak); return false; }
 
     btn.disabled = true; btn.textContent = 'Creating account…';
 
