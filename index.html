@@ -6,11 +6,13 @@
 <link rel="icon" type="image/png" sizes="512x512" href="assets/favicon-512.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Talaks — Always the newest phone, never stuck with it</title>
+<title>iPhone &amp; Galaxy Phones on a Plan, No Credit Check | Talaks Australia</title>
+<meta name="description" content="Get a brand-new iPhone or Galaxy on a monthly plan from $44/month — no credit check, no lock-in past your term, free upgrades and free delivery Australia-wide.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,380;9..144,440;9..144,560;9..144,640&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="assets/auth.js"></script>
 <script src="assets/pricing.js"></script>
 <style>
   :root{
@@ -217,7 +219,7 @@
   <div class="hero-inner">
     <div class="hero-copy">
       <h1 class="headline">Always on the <span class="accent">latest tech.</span></h1>
-      <p class="hero-sub">Brand-new iPhones and Galaxy flagships, yours from <span id="hero-from">$37</span>/month. Free upgrades, free delivery, no upfront cost.</p>
+      <p class="hero-sub">Brand-new iPhones and Galaxy flagships, on a monthly plan from <span id="hero-from">$44</span>/month. No credit check, no upfront cost, free upgrades.</p>
       <div class="hero-ctas">
         <a href="catalog.html" class="btn-primary">See your monthly price</a>
         <a href="#how" class="btn-text">How it works</a>
@@ -288,7 +290,7 @@
       <li><span class="mark">02</span><div><b>No credit check</b><span class="desc">Just a two-minute ID check. It won't touch your credit file.</span></div></li>
       <li><span class="mark">03</span><div><b>Repairs at cost</b><span class="desc">Faults that aren’t your doing are on us. Accidents we get repaired through the manufacturer and pass on what it costs — no markup. Everyday wear is never charged.</span></div></li>
       <li><span class="mark">04</span><div><b>Fixed monthly price</b><span class="desc">Your price is locked for the whole term. No interest, and total payments stay under the phone's retail price.</span></div></li>
-      <li><span class="mark">05</span><div><b>Leave early if you need to</b><span class="desc">There's a fixed exit fee, shown before you sign up. Never the full remaining balance.</span></div></li>
+      <li><span class="mark">05</span><div><b>Leave early if you need to</b><span class="desc">Pay out the payments left on your term in one go and return the device — no separate penalty, no surprise on top.</span></div></li>
       <li><span class="mark">06</span><div><b>Better for the planet</b><span class="desc">Every phone that comes back is refurbished and goes to its next subscriber, not to landfill.</span></div></li>
     </ul>
   </div>
@@ -367,10 +369,10 @@
       <a href="terms.html">Terms of Use</a>
       <a href="terms.html#repairs">Damage and repairs</a>
       <a href="privacy.html">Privacy Policy</a>
-      <a href="mailto:info@talaks.com">info@talaks.com</a>
+      <a href="mailto:info@talaks.com.au">info@talaks.com.au</a>
     </div>
     <div class="foot-bottom">
-      <span>© 2026 Talaks. All plans subject to approval.</span>
+      <span>© 2026 Talaks Trading (ABN 52 477 928 344). All plans subject to approval.</span>
       <span>Sydney, Australia</span>
     </div>
   </div>
@@ -384,10 +386,9 @@
       : { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
-  const supabaseClient = supabase.createClient(
-    'https://asajwviusixmnoolawnb.supabase.co',
-    'sb_publishable__KTvqClMNFPO2ZHkueUJmA_101Fl1_D'
-  );
+  // Reuses the one client assets/auth.js already created, rather than
+  // opening a second independent Supabase/GoTrue client on the same page.
+  const supabaseClient = Talaks.client;
 
   supabaseClient
     .from('devices')
@@ -444,6 +445,5 @@
     .catch(err => console.error('Could not load featured devices:', err));
 </script>
 
-<script src="assets/auth.js"></script>
 </body>
 </html>

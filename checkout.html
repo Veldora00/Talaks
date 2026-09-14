@@ -176,7 +176,7 @@
     <div class="summary-row"><span>Monthly payment</span><b class="summary-total" id="sum-monthly">—</b></div>
   </div>
 
-  <p class="microcopy">Identity verification is live and runs on Didit’s hosted flow. Payment is still in development — no charge happens yet.</p>
+  <p class="microcopy">Identity verification runs on Didit’s hosted flow. Your card is validated and saved by Stripe when you submit — nothing is charged until your order is approved.</p>
 </div>
 
 <footer class="site-foot">
@@ -187,9 +187,9 @@
       <a href="terms.html">Terms of Use</a>
       <a href="terms.html#repairs">Damage and repairs</a>
       <a href="privacy.html">Privacy Policy</a>
-      <a href="mailto:info@talaks.com">info@talaks.com</a>
+      <a href="mailto:info@talaks.com.au">info@talaks.com.au</a>
     </div>
-    <span>© 2026 Talaks. Sydney, Australia.</span>
+    <span>© 2026 Talaks Trading (ABN 52 477 928 344). Sydney, Australia.</span>
   </div>
 </footer>
 
@@ -336,11 +336,20 @@
   }
 
   function collapseDelivery(p){
-    document.getElementById('recap-lines').innerHTML =
-      '<b>' + p.full_name + '</b><br>' +
-      p.address_line + '<br>' +
-      p.suburb + ' ' + p.state + ' ' + p.postcode + '<br>' +
-      p.phone;
+    // Built with real DOM nodes, not innerHTML — these are customer-entered
+    // form values, and concatenating them into HTML would let something
+    // like a name containing "<img onerror=...>" execute as script.
+    var box = document.getElementById('recap-lines');
+    box.textContent = '';
+    var name = document.createElement('b');
+    name.textContent = p.full_name;
+    box.appendChild(name);
+    box.appendChild(document.createElement('br'));
+    box.appendChild(document.createTextNode(p.address_line));
+    box.appendChild(document.createElement('br'));
+    box.appendChild(document.createTextNode(p.suburb + ' ' + p.state + ' ' + p.postcode));
+    box.appendChild(document.createElement('br'));
+    box.appendChild(document.createTextNode(p.phone));
     document.getElementById('delivery-form').style.display = 'none';
     document.getElementById('delivery-recap').style.display = 'block';
     var pill = document.getElementById('delivery-status');
@@ -459,7 +468,7 @@
           pill.className = 'status-pill failed';
           pill.textContent = 'Declined';
           btn.textContent = 'Verification declined';
-          show('v-error', 'Your verification was declined. Email info@talaks.com if you think that’s wrong.');
+          show('v-error', 'Your verification was declined. Email info@talaks.com.au if you think that’s wrong.');
           return;
         }
         pill.textContent = STATUS_LABELS[status] || status;

@@ -6,12 +6,13 @@
 <link rel="icon" type="image/png" sizes="512x512" href="assets/favicon-512.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Talaks — Choose your device</title>
-<meta name="description" content="Brand-new iPhone and Galaxy flagships on a monthly subscription. Free upgrades, free delivery.">
+<title>iPhone &amp; Galaxy Phone Plans — Pay Monthly, No Credit Check | Talaks</title>
+<meta name="description" content="Browse iPhone and Galaxy phones on a monthly payment plan. No credit check, no upfront cost, free upgrades and free delivery across Australia.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,380;9..144,440;9..144,560&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="assets/auth.js"></script>
 <script src="assets/pricing.js"></script>
 <style>
   :root{
@@ -136,9 +137,9 @@
       <a href="terms.html">Terms of Use</a>
       <a href="terms.html#repairs">Damage and repairs</a>
       <a href="privacy.html">Privacy Policy</a>
-      <a href="mailto:info@talaks.com">info@talaks.com</a>
+      <a href="mailto:info@talaks.com.au">info@talaks.com.au</a>
     </div>
-    <span>© 2026 Talaks. Sydney, Australia.</span>
+    <span>© 2026 Talaks Trading (ABN 52 477 928 344). Sydney, Australia.</span>
   </div>
 </footer>
 
@@ -147,10 +148,9 @@
     '<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240"><rect width="240" height="240" fill="#FBF8F3"/><text x="50%" y="50%" font-family="sans-serif" font-size="13" fill="#8B93A1" text-anchor="middle" dominant-baseline="middle">Photo coming soon</text></svg>'
   );
 
-  const supabaseClient = supabase.createClient(
-    'https://asajwviusixmnoolawnb.supabase.co',
-    'sb_publishable__KTvqClMNFPO2ZHkueUJmA_101Fl1_D'
-  );
+  // Reuses the one client assets/auth.js already created, rather than
+  // opening a second independent Supabase/GoTrue client on the same page.
+  const supabaseClient = Talaks.client;
 
   function money(n){
     const r = Math.round(n * 100) / 100;
@@ -178,7 +178,7 @@
       const grid = document.getElementById('brand-grid');
       if (error || !data || data.length === 0) {
         console.error('Could not load devices:', error);
-        grid.innerHTML = '<div class="empty-note">Couldn\'t load devices right now. Please refresh, or email info@talaks.com.</div>';
+        grid.innerHTML = '<div class="empty-note">Couldn\'t load devices right now. Please refresh, or email info@talaks.com.au.</div>';
         return;
       }
       // A device with no priced term is a draft: not for sale, not shown.
@@ -232,6 +232,16 @@
     return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
 
+  // First sentence of a spec line, for the card's short description. Split
+  // on ". " (period + space) rather than a bare ".", or "6.9-inch display"
+  // truncates to "6." at the decimal point instead of the actual sentence
+  // break.
+  function firstSentence(s){
+    var str = s || '';
+    var i = str.indexOf('. ');
+    return i === -1 ? str : str.slice(0, i + 1);
+  }
+
   function showModels(brand){
     stepBrand.style.display = 'none';
     stepModels.style.display = '';
@@ -263,7 +273,7 @@
         '<div class="thumb"><img src="' + escapeHtml(d.colours[0].img) + '" alt="' + escapeHtml(d.name) + '" onerror="this.onerror=null;this.src=\'' + PLACEHOLDER_IMG + '\'"></div>' +
         '<div class="mi">' +
           '<div class="mn">' + escapeHtml(d.name) + '</div>' +
-          '<div class="ms">' + escapeHtml((d.sub || '').split('.')[0]) + '.</div>' +
+          '<div class="ms">' + escapeHtml(firstSentence(d.sub)) + '</div>' +
           '<div class="mp">' + (discounted ? '<s>' + money(was) + '</s>' : '') +
             'From ' + money(now) + '/month</div>' +
           (rrpWas ? '<div class="mp" style="font-size:12.5px">RRP <s>' + money(rrpWas) + '</s> ' +
@@ -281,6 +291,5 @@
   }
 </script>
 
-<script src="assets/auth.js"></script>
 </body>
 </html>

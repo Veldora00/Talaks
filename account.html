@@ -184,9 +184,9 @@
       <a href="faq.html">FAQs</a>
       <a href="terms.html">Terms of Use</a>
       <a href="privacy.html">Privacy Policy</a>
-      <a href="mailto:info@talaks.com">info@talaks.com</a>
+      <a href="mailto:info@talaks.com.au">info@talaks.com.au</a>
     </div>
-    <span>© 2026 Talaks. Sydney, Australia.</span>
+    <span>© 2026 Talaks Trading (ABN 52 477 928 344). Sydney, Australia.</span>
   </div>
 </footer>
 
@@ -247,7 +247,7 @@
               'We\u2019ll be in touch beforehand to arrange the return, an extension, or an upgrade.</p>';
     } else if (sub.status === 'past_due') {
       rows += '<p class="form-note" style="color:var(--danger);">A payment didn\u2019t go through. Update your card and we\u2019ll retry automatically — ' +
-              'email <a href="mailto:info@talaks.com" style="color:var(--brand-deep);">info@talaks.com</a> if you need a hand.</p>';
+              'email <a href="mailto:info@talaks.com.au" style="color:var(--brand-deep);">info@talaks.com.au</a> if you need a hand.</p>';
     } else if (sub.status === 'pending_approval') {
       rows += '<p class="form-note"><b>Nothing has been charged.</b> We check every order before taking a ' +
               'payment, usually within one business day. We’ll email you either way — if we go ahead, ' +
@@ -263,7 +263,7 @@
               'whenever you want to start again.</p>';
     } else if (sub.status === 'declined') {
       rows += '<p class="form-note">We weren’t able to go ahead with this order, and you haven’t been ' +
-              'charged anything. Email <a href="mailto:info@talaks.com" style="color:var(--brand-deep);">info@talaks.com</a> ' +
+              'charged anything. Email <a href="mailto:info@talaks.com.au" style="color:var(--brand-deep);">info@talaks.com.au</a> ' +
               'if you’d like to know more or want to try again.</p>';
     } else if (sub.status === 'pending') {
       rows += '<p class="form-note">We\u2019re waiting on your first payment to clear. This page updates on its own once it does.</p>';
@@ -328,7 +328,7 @@
     } else if (row.status === 'Declined') {
       body.innerHTML = '<div class="kv"><span>Status</span><b>Declined</b></div>'
         + '<p class="form-note">If you think this is a mistake, email '
-        + '<a href="mailto:info@talaks.com" style="color:var(--brand-deep);">info@talaks.com</a> and we’ll take a look.</p>';
+        + '<a href="mailto:info@talaks.com.au" style="color:var(--brand-deep);">info@talaks.com.au</a> and we’ll take a look.</p>';
     } else {
       body.innerHTML = '<div class="kv"><span>Status</span><b>' + style.label + '</b></div>'
         + '<p class="form-note">This usually finishes in a minute or two. Refresh to check again.</p>';
