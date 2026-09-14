@@ -52,7 +52,13 @@ window.Talaks = (function () {
       // lands back on this site.
       var resolved = new URL(value, window.location.origin);
       if (resolved.origin !== window.location.origin) return null;
-      return resolved.pathname.replace(/^\//, '') + resolved.search + resolved.hash;
+      // Hand back the exact URL whose origin we just checked. Rebuilding a
+      // relative string from the parts re-opens the hole the origin check
+      // closed: "/https://evil.com" and "/javascript:alert(1)" both resolve
+      // to harmless paths on this origin, but stripping the leading slash
+      // turns them back into an absolute URL and a javascript: URL, and
+      // "//evil.com" stays protocol-relative even with the slash kept.
+      return resolved.href;
     } catch (e) {
       return null;
     }
@@ -157,11 +163,31 @@ window.Talaks = (function () {
       });
   }
 
+  var SUBSCRIPTION_FIELDS =
+    'id, device_id, storage_gb, colour, term_months, monthly_amount_cents, status, ' +
+    'current_period_end, cancel_at, created_at';
+
+  /* Every plan this customer has, newest first.
+   *
+   * Nothing stops someone taking a second plan — a phone for a partner, an
+   * upgrade started before the old term ends — and reading one row would
+   * quietly hide the others, including a second order they are being charged
+   * for. The account page renders whatever comes back. */
+  function allSubscriptions(userId) {
+    if (!ready) return Promise.resolve([]);
+    return client.from('subscriptions')
+      .select(SUBSCRIPTION_FIELDS)
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(25)
+      .then(function (res) { return res.data || []; });
+  }
+
   /* Most recent plan, whatever its state. */
   function latestSubscription(userId) {
     if (!ready) return offline();
     return client.from('subscriptions')
-      .select('device_id, storage_gb, colour, term_months, monthly_amount_cents, status, current_period_end, cancel_at, created_at')
+      .select(SUBSCRIPTION_FIELDS)
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(1)
@@ -238,5 +264,6 @@ window.Talaks = (function () {
     saveProfile: saveProfile,
     latestVerification: latestVerification,
     latestSubscription: latestSubscription,
+    allSubscriptions: allSubscriptions,
   };
 })();
