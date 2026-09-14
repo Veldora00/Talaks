@@ -6,259 +6,462 @@
 <link rel="icon" type="image/png" sizes="512x512" href="assets/favicon-512.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Talaks — Terms of Use</title>
+<title>Talaks — Your account</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,380;9..144,440;9..144,560&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/talaks.css">
 <style>
-  :root{
-    --paper:#FFFFFF; --paper-warm:#FBF8F3;
-    --ink:#161A20; --ink-dim:#5B6472; --ink-faint:#8B93A1;
-    --line: rgba(22,26,32,0.10); --line-strong: rgba(22,26,32,0.18);
-    --brand:#FF5A36; --brand-deep:#E8471F; --teal:#1E9E82;
-    --serif: 'Fraunces', Georgia, serif; --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  }
-  *{box-sizing:border-box;}
-  body{ margin:0; background:var(--paper); color:var(--ink); font-family:var(--sans); line-height:1.6; -webkit-font-smoothing:antialiased; }
-  .wrap{max-width:760px; margin:0 auto; padding:0 28px;}
-  @media (max-width:640px){ .wrap{padding:0 20px;} }
-  nav{ position:sticky; top:0; z-index:50; background:rgba(255,255,255,0.92); backdrop-filter: blur(8px); border-bottom:1px solid var(--line); }
-  nav .row{ display:flex; align-items:center; justify-content:space-between; padding:18px 0; max-width:760px; margin:0 auto; padding-left:28px; padding-right:28px; }
-  .brand{ font-family:var(--serif); font-size:22px; font-weight:640; text-decoration:none; color:var(--ink); }
-  .brand span{color:var(--brand);}
-  .back{ font-size:14px; color:var(--ink-dim); text-decoration:none; }
-  .back:hover{ color:var(--ink); }
+  /* Dashboard layout — a sidebar of sections beside the panels, collapsing to
+     a stacked list on narrow screens. Deliberately not the stepper shell that
+     checkout uses, or the single-column card that sign-in uses. */
+  .dash{ max-width:960px; margin:0 auto; padding:0 28px 90px; }
+  @media (max-width:640px){ .dash{ padding:0 20px 70px; } }
 
-  main{ padding:48px 0 100px; }
-  h1{ font-family:var(--serif); font-weight:440; font-size:36px; margin:0 0 8px; letter-spacing:-0.01em; }
-  .updated{ font-size:13px; color:var(--ink-faint); margin:0 0 44px; }
-  h2{ font-family:var(--serif); font-weight:500; font-size:22px; margin:48px 0 14px; letter-spacing:-0.01em; scroll-margin-top:80px; }
-  p{ font-size:15px; color:var(--ink-dim); margin:0 0 14px; }
-  ol, ul{ padding-left:22px; font-size:15px; color:var(--ink-dim); }
-  li{ margin-bottom:10px; }
-  .toc{ border:1px solid var(--line); border-radius:14px; background:var(--paper-warm); padding:22px 26px; margin-bottom:8px; }
-  .toc p{ margin:0 0 10px; font-size:13px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:0.04em; }
-  .toc ol{ margin:0; padding-left:20px; }
-  .toc a{ color:var(--ink); text-decoration:none; font-size:14.5px; }
-  .toc a:hover{ color:var(--brand-deep); }
-  .highlight{ border:1px solid rgba(255,90,54,0.35); background:#FFF4EE; border-radius:12px; padding:18px 20px; font-size:14px; color:var(--ink-dim); }
-  .highlight b{ color:var(--brand-deep); }
-  table.fees{ width:100%; border-collapse:collapse; font-size:14.5px; color:var(--ink-dim); margin:6px 0 18px; }
-  table.fees th{ text-align:left; font-size:12px; letter-spacing:0.04em; text-transform:uppercase; color:var(--ink-faint); font-weight:600; padding:9px 10px; border-bottom:1px solid var(--line-strong); }
-  table.fees td{ padding:11px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
-  table.fees td b{ color:var(--ink); font-weight:600; }
-  table.fees .amt{ white-space:nowrap; }
-  .worked{ border:1px solid var(--line); border-radius:12px; background:var(--paper-warm); padding:16px 18px; font-size:14px; margin:4px 0 18px; }
-  .worked p{ margin:0 0 8px; font-size:14px; }
-  .worked p:last-child{ margin-bottom:0; }
-  footer{ border-top:1px solid var(--line); padding:32px 0; font-size:13px; color:var(--ink-faint); }
-  footer a{ color:var(--ink-dim); text-decoration:none; }
-  footer a:hover{ color:var(--ink); }
+  .dash-head{ display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:14px; margin:40px 0 30px; }
+  .dash-head h1{ font-family:var(--serif); font-weight:440; font-size:30px; margin:0 0 4px; letter-spacing:-0.01em; }
+  .dash-head .who{ font-size:14px; color:var(--ink-dim); margin:0; }
+
+  .dash-grid{ display:grid; grid-template-columns:200px 1fr; gap:30px; align-items:start; }
+  @media (max-width:820px){ .dash-grid{ grid-template-columns:1fr; gap:20px; } }
+
+  .side-nav{ position:sticky; top:90px; display:flex; flex-direction:column; gap:2px; }
+  @media (max-width:820px){ .side-nav{ position:static; flex-direction:row; flex-wrap:wrap; gap:8px; } }
+  .side-nav a{
+    font-size:14px; color:var(--ink-dim); text-decoration:none; padding:9px 12px;
+    border-radius:8px; transition:background 0.15s, color 0.15s;
+  }
+  .side-nav a:hover{ background:var(--paper-warm); color:var(--ink); }
+  @media (max-width:820px){ .side-nav a{ border:1px solid var(--line); } }
+
+  .panel{ border:1px solid var(--line); border-radius:16px; background:var(--paper-warm); padding:26px; margin-bottom:20px; scroll-margin-top:90px; }
+  .panel h2{
+    font-size:13px; letter-spacing:0.4px; color:var(--teal); font-weight:600;
+    margin:0 0 6px; text-transform:none;
+  }
+  .panel .panel-hint{ font-size:13.5px; color:var(--ink-dim); margin:0 0 18px; }
+  .panel-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+
+  .empty{
+    border:1px dashed var(--line-strong); border-radius:12px; padding:24px;
+    text-align:center; font-size:14px; color:var(--ink-dim);
+  }
+  .empty a{ color:var(--brand-deep); }
+
+  .kv{ display:flex; justify-content:space-between; padding:10px 0; font-size:14px; color:var(--ink-dim); border-bottom:1px solid var(--line); }
+  .kv:last-child{ border-bottom:none; }
+  .kv b{ color:var(--ink); font-weight:500; }
+  /* Only used when a customer has more than one plan. */
+  .plan-block + .plan-block{ margin-top:18px; padding-top:18px; border-top:1px solid var(--line); }
+  .plan-block-head{ display:flex; align-items:center; gap:10px; margin-bottom:4px; font-size:14.5px; color:var(--ink); }
+  .plan-block-head .status-pill{ margin-left:auto; }
+
+  .danger-zone{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; }
+  .danger-zone p{ margin:0; font-size:13.5px; color:var(--ink-dim); }
+  .signout-btn{
+    background:none; border:1px solid var(--line-strong); border-radius:999px; padding:10px 22px;
+    font-family:inherit; font-size:14px; color:var(--ink); cursor:pointer; transition:all 0.15s;
+  }
+  .signout-btn:hover{ border-color:var(--danger); color:var(--danger); }
+
+  .loading{ text-align:center; padding:80px 0; color:var(--ink-faint); font-size:14px; }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
 
 <nav>
-  <div class="row">
+  <div class="wrap row">
     <a href="index.html" class="brand">Tal<span>a</span>ks</a>
-    <a href="index.html" class="back">&larr; Back home</a>
+    <div class="navlinks">
+      <a href="catalog.html">Devices</a>
+      <a href="index.html#how">How it works</a>
+      <a href="faq.html">FAQ</a>
+    </div>
   </div>
 </nav>
 
-<main class="wrap">
-  <h1>Terms of Use</h1>
-  <p class="updated">Last updated: September 2026 &middot; Talaks Trading (ABN 52 477 928 344), Sydney, Australia</p>
+<div id="loading" class="loading">Loading your account…</div>
 
-  <div class="toc">
-    <p>On this page</p>
-    <ol>
-      <li><a href="#the-plan">1. How a Talaks plan works</a></li>
-      <li><a href="#eligibility">2. Eligibility and identity verification</a></li>
-      <li><a href="#approval">3. Placing an order and our approval</a></li>
-      <li><a href="#cooling-off">4. Changing your mind</a></li>
-      <li><a href="#delivery">5. Delivery</a></li>
-      <li><a href="#payments">6. Payments, fees and charges</a></li>
-      <li><a href="#missed">7. Missed payments and hardship</a></li>
-      <li><a href="#obligations">8. Looking after the device</a></li>
-      <li><a href="#ownership">9. Ownership and warranty</a></li>
-      <li><a href="#repairs">10. Damage, loss and theft</a></li>
-      <li><a href="#early-exit">11. Ending your plan early</a></li>
-      <li><a href="#end-of-term">12. End of term and returning the device</a></li>
-      <li><a href="#non-return">13. Non-return compensation</a></li>
-      <li><a href="#default">14. Default and what we may do</a></li>
-      <li><a href="#privacy">15. Privacy</a></li>
-      <li><a href="#general">16. General</a></li>
-      <li><a href="#contact">17. Contact</a></li>
-    </ol>
+<div class="dash" id="dash" style="display:none;">
+
+  <div class="dash-head">
+    <div>
+      <h1>Your account</h1>
+      <p class="who" id="who">—</p>
+    </div>
   </div>
 
-  <div class="highlight" style="margin-top:28px;">Your agreement with us is made up of two things: these terms, and the plan agreement issued when your order is approved, which sets out your device, term, monthly payment, early-exit charge and return date. If the two ever conflict, your plan agreement wins.</div>
+  <div class="dash-grid">
+    <div class="side-nav">
+      <a href="#plan">Your plan</a>
+      <a href="#identity">Identity</a>
+      <a href="#details">Delivery details</a>
+      <a href="#security">Security</a>
+    </div>
 
-  <h2 id="the-plan">1. How a Talaks plan works</h2>
-  <p>A Talaks plan is a fixed-term subscription to <i>use</i> a device. It is not a purchase, a rent-to-own or lease-to-own arrangement, a loan, or any other form of credit. You choose your term when you order. Most devices offer 12 or 24 months, and some offer 36 &mdash; the terms available are shown on each device&rsquo;s page, because they differ by device.</p>
-  <p>Talaks remains the owner of the device for the whole term, and at the end of it. You do not acquire any right, title or interest in the device at any point, and there is no option to buy it &mdash; not during the term, not at the end, not by paying anything extra.</p>
-  <p>Total payments across your term are set at or below the device&rsquo;s recommended retail price at the time you order. No interest is charged, and there is no establishment fee, deposit or bond.</p>
+    <div>
 
-  <h2 id="eligibility">2. Eligibility and identity verification</h2>
-  <p>To hold a Talaks plan you must be at least 18, live in Australia, and have an Australian delivery address. Devices are not shipped outside Australia.</p>
-  <p>Approval requires a successful identity check, carried out through our verification provider (currently Didit). It involves a photo of your identity document and a short liveness check, both handled on their secure service rather than ours.</p>
-  <p>Documents we can accept include an Australian passport, an Australian driver licence, or a foreign passport. Where a document can be checked automatically and the result is clear, verification usually finishes in a couple of minutes.</p>
-  <p><b>If a document cannot be verified automatically</b> &mdash; the photo is unclear, the document is an unusual type, or the check is inconclusive &mdash; your order goes to manual review instead of being refused. We may then ask you for a second form of identification or a supporting document before we decide. We will always tell you exactly what we need and why.</p>
-  <p><b>We do not run a credit check</b> to approve an order, and applying does not create an enquiry on your credit file.</p>
-  <p>Meeting these requirements does not guarantee approval. Every order is assessed individually and we may decline one without giving reasons &mdash; though we will always tell you that we have, and nothing will have been charged.</p>
+      <section class="panel" id="plan">
+        <div class="panel-head">
+          <div>
+            <h2>Your plan</h2>
+            <p class="panel-hint">Your device, its term, and when it ends.</p>
+          </div>
+          <span class="status-pill pending" id="plan-status" style="display:none;">—</span>
+        </div>
+        <div id="plan-body">
+          <div class="empty">Loading…</div>
+        </div>
+      </section>
 
-  <h2 id="approval">3. Placing an order and our approval</h2>
-  <p>Submitting an order is a request, not a completed agreement. <b>Nothing is charged when you place it.</b> Your card details are validated and stored by our payment provider, Stripe, and no payment is taken.</p>
-  <p>We review every order before accepting it, usually within one business day. If we accept it, we take your first monthly payment at that point, issue your plan agreement, and prepare the device for delivery. If we decline it, no payment is taken and there is nothing for you to do.</p>
-  <p>You can withdraw an order at any time while it is still being reviewed, from your account page, at no cost. Your agreement with us begins only when we accept the order and take the first payment.</p>
+      <section class="panel" id="identity">
+        <div class="panel-head">
+          <div>
+            <h2>Identity verification</h2>
+            <p class="panel-hint">A one-time ID and liveness check, handled by Didit.</p>
+          </div>
+          <span class="status-pill pending" id="id-status">Not started</span>
+        </div>
+        <div id="id-body"></div>
+      </section>
 
-  <h2 id="cooling-off">4. Changing your mind</h2>
-  <p>You have <b>14 days from the day your device is delivered</b> to change your mind &mdash; counted from delivery, not from when you ordered, so waiting for the post never eats into it. Tell us within that window and return the device unused and undamaged, in its original packaging with all accessories, and we will cancel the plan and refund the payment you have made.</p>
-  <p>You cover the cost of returning the device to us unless it arrived faulty or was not what you ordered, in which case we cover it. If the device comes back damaged or with parts missing, we may deduct the cost of putting that right from your refund.</p>
-  <p>This is in addition to any rights you have under the Australian Consumer Law, not instead of them.</p>
+      <section class="panel" id="details">
+        <h2>Delivery details</h2>
+        <p class="panel-hint">Where your device ships, and how we reach you about it.</p>
 
-  <h2 id="delivery">5. Delivery</h2>
-  <p>Delivery is free within Australia and usually takes three to five business days from approval. We will give you a tracking reference once the device is posted.</p>
-  <p>Delivery timeframes are estimates. We will keep you informed if something is delayed, but we are not responsible for delays caused by the carrier, weather, or other things outside our control.</p>
-  <p>Please check the device when it arrives and tell us within 48 hours if anything is damaged, missing, or not what you ordered.</p>
+        <div class="field">
+          <label for="pf-name">Full name</label>
+          <input type="text" id="pf-name" autocomplete="name">
+        </div>
+        <div class="field">
+          <label for="pf-phone">Phone</label>
+          <input type="tel" id="pf-phone" autocomplete="tel" placeholder="04XX XXX XXX">
+        </div>
+        <div class="field">
+          <label for="pf-address">Street address</label>
+          <input type="text" id="pf-address" autocomplete="address-line1">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="pf-suburb">Suburb</label>
+            <input type="text" id="pf-suburb" autocomplete="address-level2">
+          </div>
+          <div class="field">
+            <label for="pf-state">State</label>
+            <select id="pf-state">
+              <option value="">Select…</option>
+              <option>NSW</option><option>VIC</option><option>QLD</option><option>WA</option>
+              <option>SA</option><option>TAS</option><option>ACT</option><option>NT</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="pf-postcode">Postcode</label>
+            <input type="text" id="pf-postcode" autocomplete="postal-code" inputmode="numeric" maxlength="4">
+          </div>
+        </div>
+        <div class="form-error" id="pf-error"></div>
+        <div class="form-ok" id="pf-ok"></div>
+        <button class="action-btn" id="pf-btn" onclick="saveDetails()">Save details</button>
+      </section>
 
-  <h2 id="payments">6. Payments, fees and charges</h2>
-  <p>Your monthly payment is fixed for the length of your term and shown in full before you order. It covers the device and nothing else &mdash; there is no insurance, cover, protection plan or service subscription bundled into it, and no mobile service or SIM is included.</p>
-  <p>Payments are taken automatically from the card you provided, on the same date each month, starting on the day we approve your order. Pricing is set from the device&rsquo;s retail price at the time you order and does not change part-way through your term, whatever happens to the retail price afterwards.</p>
-  <p>For a plan running normally, the only charges that can apply on top of your monthly payment are the ones in this table &mdash; every amount is either fixed and shown here, or the actual cost to us with nothing added. This table doesn&rsquo;t cover what happens if payments are missed and go unresolved, or the device isn&rsquo;t returned when it should be &mdash; sections 7, 13 and 14 set out the separate, uncapped costs (such as debt collection or enforcement costs) that can apply in those specific situations.</p>
+      <section class="panel" id="security">
+        <h2>Security</h2>
+        <p class="panel-hint">Your email address and password.</p>
+        <div class="kv"><span>Email</span><b id="sec-email">—</b></div>
+        <div class="kv"><span>Password</span><b><a href="reset-password.html" style="color:var(--brand-deep);">Change password</a></b></div>
+        <div style="height:18px;"></div>
+        <div class="danger-zone">
+          <p>Signed in on this device.</p>
+          <button class="signout-btn" onclick="Talaks.signOut()">Sign out</button>
+        </div>
+      </section>
 
-  <table class="fees">
-    <thead><tr><th>Charge</th><th>Amount</th><th>When it applies</th></tr></thead>
-    <tbody>
-      <tr>
-        <td><b>Late payment fee</b></td>
-        <td class="amt">Up to $19</td>
-        <td>Each scheduled payment not received by its due date.</td>
-      </tr>
-      <tr>
-        <td><b>Repair charge</b></td>
-        <td class="amt">At cost</td>
-        <td>Damage you are responsible for. Quoted before any work is booked; you can decline and use your own authorised repairer.</td>
-      </tr>
-      <tr>
-        <td><b>Early-exit charge</b></td>
-        <td class="amt">The remaining monthly payments on your term</td>
-        <td>Ending your plan before the term is up. Paid in one amount; the device is then returned within 14 days.</td>
-      </tr>
-      <tr>
-        <td><b>Non-return compensation</b></td>
-        <td class="amt">RRP at order, less 50% of your total plan payments</td>
-        <td>Device not posted back within 14 days of your plan ending, or lost, stolen, or damaged beyond reasonable repair. This is compensation for our loss, not a price for the device &mdash; you never acquire ownership by paying it, at any time, under any circumstance. A one-off amount, separate from your monthly payments and due in addition to any still owing. A fixed figure for your plan.</td>
-      </tr>
-      <tr>
-        <td><b>Missing accessories</b></td>
-        <td class="amt">At cost</td>
-        <td>Box, cable or other included items not returned with the device.</td>
-      </tr>
-    </tbody>
-  </table>
-
-  <p><b>What that looks like in practice.</b> Take a device with a retail price of $1,000, on a plan of $40 a month over 24 months &mdash; $960 across the whole term:</p>
-
-  <div class="worked">
-    <p><b>Leaving early at month 8.</b> Sixteen payments remain, so the early-exit charge is 16 &times; $40 = <b>$640</b>. Pay that, post the device back within 14 days, and you are done. You have paid $960 in total &mdash; the same as finishing the term, just sooner.</p>
-    <p><b>Not returning the device at the end of the term.</b> The non-return compensation is $1,000 &minus; $480 (half of the $960 plan total) = <b>$520</b>. It is the same figure whenever it applies, and paying it does not give you the device &mdash; it remains ours.</p>
-    <p><b>Losing the device at month 8.</b> The plan ends. You owe the remaining 16 payments ($640) plus non-return compensation ($520): <b>$1,160</b>, on top of the $320 already paid. Across the plan that is $1,480 &mdash; more than the device cost new. That is deliberate: not returning a device is never the cheaper option, and it is never a way to end up owning it.</p>
+    </div>
   </div>
+</div>
 
-  <p>Non-return compensation is a fixed figure for your plan, known from day one. The early-exit charge falls every month you stay. Both are set out in your plan agreement before you confirm it.</p>
-
-  <h2 id="missed">7. Missed payments and hardship</h2>
-  <p>If a payment fails we will retry it and let you know. We would much rather hear from you than chase you.</p>
-  <p><b>If you are having trouble paying, contact us early.</b> We will work with you on a payment arrangement, a pause, or another way through. Talk to us before a payment fails if you can &mdash; it is far easier to arrange something in advance than to unwind arrears afterwards.</p>
-  <p>If payments remain unpaid and you have not made an arrangement with us, we may refer the amount to a debt collection agency and recover the reasonable costs of doing so.</p>
-
-  <h2 id="obligations">8. Looking after the device</h2>
-  <p>The device is ours, and you are looking after it for the length of your plan. While you have it, you agree to:</p>
-  <ul>
-    <li>use it normally and carefully, and keep it in good working order;</li>
-    <li>keep the original box and all included accessories until the plan ends;</li>
-    <li>not sell, hire out, pawn, give away, or offer the device as security for anything;</li>
-    <li>not modify it, remove or deface serial numbers or IMEI markings, or have it repaired by anyone other than the manufacturer or an authorised repairer;</li>
-    <li>not take it permanently out of Australia, and tell us if you move address;</li>
-    <li>not use it for anything unlawful;</li>
-    <li>keep your own backups of anything on it &mdash; we are not responsible for your data.</li>
-  </ul>
-
-  <h2 id="ownership">9. Ownership and warranty</h2>
-  <p>Talaks owns the device throughout your plan and afterwards. You have no right, title or interest in it, and it must never be treated as yours to dispose of.</p>
-  <p>The device is covered against manufacturing and quality faults for the whole of your term, not just part of it. For its stated duration (Apple: 12 months, Samsung: 24 months), that cover is the manufacturer&rsquo;s own warranty; for the remainder of your term, we provide the same cover ourselves, at no cost to you, so you are never without it. You have two ways to use it, and either is fine:</p>
-  <ul>
-    <li><b>Take it in yourself</b> &mdash; an Apple Store, a Samsung service centre, or any repairer authorised by the manufacturer. Tell us first so we know the device is out, and send us the job reference when it is done.</li>
-    <li><b>Let us arrange it</b> &mdash; tell us what is wrong and we will organise it and post you a prepaid satchel.</li>
-  </ul>
-  <p>Either way a genuine fault costs you nothing. Please do not use an unauthorised repairer: during the manufacturer&rsquo;s warranty period it voids that warranty, and at any point during your term it ends our own fault cover too, making any repair your responsibility in full from that point on.</p>
-  <p>Nothing in these terms excludes, restricts or modifies any guarantee, right or remedy you have under the Australian Consumer Law. Those rights apply in addition to everything written here, and where anything in these terms conflicts with them, the law prevails.</p>
-
-  <h2 id="repairs">10. Damage, loss and theft</h2>
-  <p>We do not sell, include, or imply any insurance product. This section sets out plainly who pays for what.</p>
-  <p><b>Faults that are not your doing.</b> If the device fails through a manufacturing or quality defect, you pay nothing. We arrange the repair or replacement and carry the cost.</p>
-  <p><b>Accidental damage.</b> Cracked screens, liquid damage and similar accidents are your responsibility. Tell us and we will arrange the repair through the manufacturer or an authorised repairer and pass on exactly what it costs us &mdash; no markup and no service fee on top. We will always quote you before any work is booked, and you may decline and arrange your own authorised repair instead.</p>
-  <p><b>Ordinary wear and tear is never charged.</b> Scuffs, light scratches and normal ageing are expected across a term and cost you nothing at return.</p>
-  <p><b>Loss and theft are not covered.</b> If the device is lost or stolen you remain responsible for it. Your plan ends, the remaining payments on your term become payable, and the non-return compensation in section 13 applies on top. Report it to the police and to us as soon as you can, and give us the police report number &mdash; we will help where we can. Where a device is simply not returned and you do not resolve this with us, we treat it the same way: as a device unlawfully retained, which we may ourselves report to the police. If you want protection against loss or theft, a contents or standalone device insurance policy is the right tool, and we would encourage you to consider one.</p>
-  <p><b>Deliberate damage and misuse.</b> Damage caused deliberately, by misuse, or by unauthorised repair or modification is your responsibility in full, at the actual cost of repair or, where the device cannot reasonably be repaired, the non-return compensation in section 13.</p>
-
-  <h2 id="early-exit">11. Ending your plan early</h2>
-  <p>You can end your plan before the end of its term by telling us, paying the early-exit charge, and returning the device under section 12 within 14 days.</p>
-  <p>The early-exit charge is <b>the monthly payments remaining on your term</b>, paid in one amount. Nothing is added and nothing is discounted: you pay what you would have paid had you stayed, no later than the day you leave. The figure is shown to you before you commit to leaving and falls every month you remain. Section 6 has a worked example.</p>
-  <p>Thinking of moving to a different device instead? Email <a href="mailto:info@talaks.com.au">info@talaks.com.au</a> before you cancel. We will tell you what is left on your current plan and what a new one would look like.</p>
-
-  <h2 id="end-of-term">12. End of term and returning the device</h2>
-  <p>We will contact you before your term ends. You then have three choices:</p>
-  <ul>
-    <li><b>Return it</b> &mdash; send the device back and your plan simply ends. Your payments stop.</li>
-    <li><b>Extend</b> &mdash; continue on your current device at the rate we offer you at the time.</li>
-    <li><b>Upgrade</b> &mdash; return this device and start a fresh plan on a newer one. There is no upgrade fee.</li>
-  </ul>
-  <p>You must <b>post the device within 14 days</b> of your term ending, using the prepaid label we provide. What matters is the date you lodge it with the carrier, not the date it reaches us &mdash; keep the receipt, and once it is scanned in, delays in transit are ours to worry about, not yours. Before you send it, please:</p>
-  <ul>
-    <li>back up anything you want to keep;</li>
-    <li>sign out and turn off Find My iPhone, Activation Lock, Google FRP or the equivalent &mdash; a device still locked to your account cannot be accepted and will be treated as not returned until it is unlocked;</li>
-    <li>factory reset it and remove your SIM or eSIM;</li>
-    <li>include the box and all accessories.</li>
-  </ul>
-  <p>We check the device when it arrives and let you know the outcome. If there is damage beyond fair wear and tear, we will tell you what it is and what the repair costs before charging anything.</p>
-
-  <h2 id="non-return">13. Non-return compensation</h2>
-  <p>Talaks owns the device for the whole term and afterwards. <b>You do not have, and this section does not give you, any right or option to buy, keep, or otherwise acquire the device by paying anything</b> &mdash; not at the end of your term, not if it goes missing, not by any other means. Nothing in these terms should be read as offering that choice.</p>
-  <p>Not returning the device is a breach of your agreement with us, not an alternative way of ending it. If your plan ends, or is ended early, and the device has not been posted back within 14 days, and you have not agreed something else with us, you owe us <b>compensation for our loss</b>, calculated as the device&rsquo;s recommended retail price at the time you ordered, <b>less 50% of the total subscription payments across your full term</b>. This is a genuine estimate of what the unreturned device costs us, fixed for your plan and stated in your plan agreement &mdash; it is not a price, a buy-out, or anything you can choose to pay instead of returning the device.</p>
-  <p>This amount is a <b>one-off sum, separate from your monthly payments</b>. It is due within 14 days of our written notice, <b>in addition to</b> any monthly payments still owing on your term &mdash; it does not replace them and it is not spread across the months. The same compensation applies where a device is lost or stolen, or comes back so damaged that it cannot reasonably be repaired. Worked examples are in section 6.</p>
-  <p>Paying this amount does not buy the device, does not transfer ownership to you, and does not settle the matter as far as the device itself is concerned. The device remains our property throughout. Because you no longer have lawful possession of something that belongs to us, we may treat it as lost, stolen, or otherwise unlawfully retained &mdash; including reporting it to the police ourselves &mdash; independently of, and at the same time as, recovering this compensation. If the device is later found or returned, we will refund the compensation less our actual costs and any reduction in its value.</p>
-  <p>If the device is lost or stolen, tell us and the police straight away. Once the remaining payments and this compensation are settled, nothing further is owed to us financially &mdash; but the device itself is still ours, and its recovery is a separate matter from the money.</p>
-  <p>We will always try to reach you and sort something out first. Treating this as a loss/theft matter and charging compensation are both last resorts, not a first step or a convenient way to finish a plan.</p>
-
-  <h2 id="default">14. Default and what we may do</h2>
-  <p>You are in default if you do not pay what is owed and have not agreed an arrangement with us, if you breach section 8, if information you gave us was false, if the device is used unlawfully, or if you permanently leave Australia without telling us.</p>
-  <p>If that happens and we cannot resolve it with you, we may end your plan, require the device to be returned, charge the non-return compensation in section 13 if it is not, and recover reasonable enforcement costs. Where a device is not returned after we have asked for it in writing, we may report it to the police as lost, stolen or retained without authority, and ask the carrier network to block its IMEI. None of this gives you any right to keep the device or any option to buy it.</p>
-  <p>We will always give you written notice and a reasonable opportunity to fix things first.</p>
-
-  <h2 id="privacy">15. Privacy</h2>
-  <p>We handle your personal information in accordance with the <i>Privacy Act 1988</i> (Cth) and the Australian Privacy Principles. What we collect, why, and who we share it with is set out in our <a href="privacy.html" style="color:var(--brand-deep);">Privacy Policy</a>.</p>
-  <p>Identity verification is carried out on our behalf by Didit, and payments are processed by Stripe. Your identity documents are handled on Didit&rsquo;s service and we receive the result of the check together with the details needed to confirm who you are. We never see or store your full card number &mdash; that stays with Stripe.</p>
-
-  <h2 id="general">16. General</h2>
-  <p>We may update these terms from time to time. If a change materially affects an active plan we will tell you in writing beforehand; otherwise the terms that applied when your plan started continue to apply to it.</p>
-  <p>You may not transfer your plan to anyone else without our written agreement. We may transfer our rights under it, and will tell you if we do.</p>
-  <p>If any part of these terms turns out to be unenforceable, the rest of them continue to apply. Not enforcing something once does not mean we give up the right to enforce it later.</p>
-  <p>These terms are governed by the laws of New South Wales, Australia.</p>
-
-  <h2 id="contact">17. Contact</h2>
-  <p>Questions about these terms, your plan agreement, a repair, a return, or a payment can be sent to <a href="mailto:info@talaks.com.au" style="color:var(--brand-deep);">info@talaks.com.au</a> and we will come back to you.</p>
-</main>
-
-<footer>
-  <div class="wrap" style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+<footer class="site-foot">
+  <div class="wrap foot-row">
+    <div class="foot-links">
+      <a href="catalog.html">Devices</a>
+      <a href="faq.html">FAQs</a>
+      <a href="terms.html">Terms of Use</a>
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="mailto:info@talaks.com.au">info@talaks.com.au</a>
+    </div>
     <span>© 2026 Talaks Trading (ABN 52 477 928 344). Sydney, Australia.</span>
-    <span><a href="blog.html">Journal</a> &nbsp;&middot;&nbsp; <a href="faq.html">FAQs</a> &nbsp;·&nbsp; <a href="privacy.html">Privacy Policy</a> &nbsp;·&nbsp; <a href="mailto:info@talaks.com.au">info@talaks.com.au</a></span>
   </div>
 </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="assets/auth.js"></script>
+<script>
+  var user = null;
+
+  function show(id, msg){
+    var el = document.getElementById(id);
+    el.textContent = msg || '';
+    el.style.display = msg ? 'block' : 'none';
+  }
+
+  // Didit statuses are stored verbatim, so map rather than string-compare in logic.
+  var PLAN_STYLES = {
+    pending_approval: { pill:'working', label:'Being reviewed' },
+    declined:  { pill:'pending', label:'Not approved' },
+    withdrawn: { pill:'pending', label:'Cancelled by you' },
+    active:    { pill:'done',    label:'Active' },
+    pending:   { pill:'working', label:'Awaiting payment' },
+    past_due:  { pill:'failed',  label:'Payment failed' },
+    completed: { pill:'pending', label:'Term completed' },
+    canceled:  { pill:'pending', label:'Ended' },
+  };
+
+  function escapeHtml(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function money(cents){ return '$' + Math.round(cents / 100).toLocaleString('en-AU'); }
+  function shortDate(iso){
+    if (!iso) return null;
+    return new Date(iso).toLocaleDateString('en-AU', { day:'numeric', month:'short', year:'numeric' });
+  }
+
+  /* Renders one plan. `bodyEl` / `pillEl` are passed in when a customer has
+   * more than one plan and each gets its own block; with one plan they default
+   * to the panel's own body and header pill, exactly as before. */
+  function renderPlan(sub, deviceName, bodyEl, pillEl){
+    var pill = pillEl || document.getElementById('plan-status');
+    var body = bodyEl || document.getElementById('plan-body');
+
+    if (!sub) {
+      pill.style.display = 'none';
+      body.innerHTML = '<div class="empty">No plan yet. <a href="catalog.html">Browse devices</a> to start one.</div>';
+      return;
+    }
+
+    var style = PLAN_STYLES[sub.status] || { pill:'working', label: sub.status };
+    pill.style.display = '';
+    pill.className = 'status-pill ' + style.pill;
+    pill.textContent = style.label;
+
+    var rows =
+      '<div class="kv"><span>Device</span><b>' + escapeHtml(deviceName || sub.device_id) +
+        ' &middot; ' + escapeHtml(sub.storage_gb) + ' &middot; ' + escapeHtml(sub.colour) + '</b></div>' +
+      '<div class="kv"><span>Monthly</span><b>' + money(sub.monthly_amount_cents) + '/mo</b></div>' +
+      '<div class="kv"><span>Term</span><b>' + sub.term_months + ' months</b></div>' +
+      '';
+
+    if (sub.status === 'active') {
+      if (sub.current_period_end) rows += '<div class="kv"><span>Next payment</span><b>' + shortDate(sub.current_period_end) + '</b></div>';
+      if (sub.cancel_at) rows += '<div class="kv"><span>Term ends</span><b>' + shortDate(sub.cancel_at) + '</b></div>';
+      rows += '<p class="form-note">Your plan stops on its own at the end of the term — it will not roll on month to month. ' +
+              'We\u2019ll be in touch beforehand to arrange the return, an extension, or an upgrade.</p>';
+    } else if (sub.status === 'past_due') {
+      rows += '<p class="form-note" style="color:var(--danger);">A payment didn\u2019t go through. Update your card and we\u2019ll retry automatically — ' +
+              'email <a href="mailto:info@talaks.com.au" style="color:var(--brand-deep);">info@talaks.com.au</a> if you need a hand.</p>';
+    } else if (sub.status === 'pending_approval') {
+      rows += '<p class="form-note"><b>Nothing has been charged.</b> We check every order before taking a ' +
+              'payment, usually within one business day. We’ll email you either way — if we go ahead, ' +
+              'your first payment is taken then and your device ships.</p>' +
+              // A waiting customer should never need to email us to get out.
+              // Nothing has been charged, so this costs no one anything.
+              '<div class="form-error" data-cancel-error></div>' +
+              '<button class="signout-btn" data-cancel-btn style="margin-top:4px;">' +
+              'Cancel this order</button>';
+    } else if (sub.status === 'withdrawn') {
+      rows += '<p class="form-note">You cancelled this order, and nothing was charged. ' +
+              '<a href="catalog.html" style="color:var(--brand-deep);">Browse devices</a> ' +
+              'whenever you want to start again.</p>';
+    } else if (sub.status === 'declined') {
+      rows += '<p class="form-note">We weren’t able to go ahead with this order, and you haven’t been ' +
+              'charged anything. Email <a href="mailto:info@talaks.com.au" style="color:var(--brand-deep);">info@talaks.com.au</a> ' +
+              'if you’d like to know more or want to try again.</p>';
+    } else if (sub.status === 'pending') {
+      rows += '<p class="form-note">We\u2019re waiting on your first payment to clear. This page updates on its own once it does.</p>';
+    } else if (sub.status === 'completed') {
+      rows += '<p class="form-note">This term has finished. <a href="catalog.html" style="color:var(--brand-deep);">Start a new plan</a> whenever you\u2019re ready.</p>';
+    }
+
+    body.innerHTML = rows;
+
+    // Bound after the HTML is written, because the button only exists for a
+    // pending order and the panel is re-rendered whenever the plan changes.
+    // Scoped to this plan's own block — with two pending orders on screen
+    // there are two buttons, and each must cancel its own row.
+    var cancelBtn = body.querySelector('[data-cancel-btn]');
+    if (cancelBtn) {
+      cancelBtn.addEventListener('click', function () {
+        if (!confirm('Cancel this order?\n\nNothing has been charged, so there is no fee. ' +
+                     'You can order again any time.')) return;
+        cancelBtn.disabled = true;
+        cancelBtn.textContent = 'Cancelling…';
+        Talaks.client.rpc('cancel_my_application', { p_subscription_id: sub.id }).then(function (res) {
+          if (res.error) {
+            cancelBtn.disabled = false;
+            cancelBtn.textContent = 'Cancel this order';
+            var err = body.querySelector('[data-cancel-error]');
+            if (err) {
+              err.textContent = res.error.message || 'Could not cancel. Please try again.';
+              err.style.display = 'block';
+            }
+            return;
+          }
+          location.reload();
+        });
+      });
+    }
+  }
+
+  /* One plan renders exactly as it always did. Two or more get a block each,
+   * newest first, with the device name and that plan's own status at the top —
+   * a second order must never be invisible behind the first, least of all one
+   * that is being charged. */
+  function renderPlans(subs, deviceNames){
+    var pill = document.getElementById('plan-status');
+    var body = document.getElementById('plan-body');
+
+    if (!subs.length) { renderPlan(null); return; }
+
+    if (subs.length === 1) {
+      renderPlan(subs[0], deviceNames[subs[0].device_id]);
+      return;
+    }
+
+    pill.style.display = 'none';
+    body.innerHTML = '';
+
+    subs.forEach(function (sub) {
+      var block = document.createElement('div');
+      block.className = 'plan-block';
+
+      var head = document.createElement('div');
+      head.className = 'plan-block-head';
+
+      var name = document.createElement('b');
+      name.textContent = deviceNames[sub.device_id] || sub.device_id;
+
+      var blockPill = document.createElement('span');
+      blockPill.className = 'status-pill pending';
+
+      var blockBody = document.createElement('div');
+
+      head.appendChild(name);
+      head.appendChild(blockPill);
+      block.appendChild(head);
+      block.appendChild(blockBody);
+      body.appendChild(block);
+
+      renderPlan(sub, deviceNames[sub.device_id], blockBody, blockPill);
+    });
+  }
+
+  var STATUS_STYLES = {
+    'Approved':    { pill:'done',    label:'Verified' },
+    'Declined':    { pill:'failed',  label:'Declined' },
+    'In Review':   { pill:'working', label:'In review' },
+    'In Progress': { pill:'working', label:'In progress' },
+    'Not Started': { pill:'pending', label:'Not started' },
+  };
+
+  function renderVerification(row){
+    var pill = document.getElementById('id-status');
+    var body = document.getElementById('id-body');
+
+    if (!row) {
+      pill.className = 'status-pill pending';
+      pill.textContent = 'Not started';
+      body.innerHTML = '<div class="empty">You’ll be asked to verify when you start a plan. '
+        + 'Nothing to do here yet.</div>';
+      return;
+    }
+
+    var style = STATUS_STYLES[row.status] || { pill:'working', label: row.status };
+    pill.className = 'status-pill ' + style.pill;
+    pill.textContent = style.label;
+
+    if (row.status === 'Approved') {
+      body.innerHTML = '<div class="kv"><span>Status</span><b>Verified — nothing further needed</b></div>';
+    } else if (row.status === 'Declined') {
+      body.innerHTML = '<div class="kv"><span>Status</span><b>Declined</b></div>'
+        + '<p class="form-note">If you think this is a mistake, email '
+        + '<a href="mailto:info@talaks.com.au" style="color:var(--brand-deep);">info@talaks.com.au</a> and we’ll take a look.</p>';
+    } else {
+      body.innerHTML = '<div class="kv"><span>Status</span><b>' + style.label + '</b></div>'
+        + '<p class="form-note">This usually finishes in a minute or two. Refresh to check again.</p>';
+    }
+  }
+
+  async function saveDetails(){
+    show('pf-error', ''); show('pf-ok', '');
+    var btn = document.getElementById('pf-btn');
+
+    var fields = {
+      full_name:    document.getElementById('pf-name').value.trim(),
+      phone:        document.getElementById('pf-phone').value.trim(),
+      address_line: document.getElementById('pf-address').value.trim(),
+      suburb:       document.getElementById('pf-suburb').value.trim(),
+      state:        document.getElementById('pf-state').value,
+      postcode:     document.getElementById('pf-postcode').value.trim(),
+    };
+
+    if (!fields.full_name) { show('pf-error', 'Please enter your full name.'); return; }
+    if (fields.postcode && !/^\d{4}$/.test(fields.postcode)) {
+      show('pf-error', 'An Australian postcode is four digits.');
+      return;
+    }
+
+    btn.disabled = true; btn.textContent = 'Saving…';
+    var { error } = await Talaks.saveProfile(user.id, fields);
+    btn.disabled = false; btn.textContent = 'Save details';
+
+    if (error) { show('pf-error', error.message); return; }
+    show('pf-ok', 'Saved.');
+  }
+
+  (async function init(){
+    var session = await Talaks.requireAuth();
+    if (!session) return; // requireAuth already redirected
+    user = session.user;
+
+    document.getElementById('who').textContent = user.email;
+    document.getElementById('sec-email').textContent = user.email;
+
+    var [profile, verification, subscriptions] = await Promise.all([
+      Talaks.getProfile(user.id),
+      Talaks.latestVerification(user.id),
+      Talaks.allSubscriptions(user.id),
+    ]);
+
+    // One query for every device across every plan, rather than one per plan.
+    var deviceNames = {};
+    var deviceIds = subscriptions
+      .map(function (s) { return s.device_id; })
+      .filter(function (id, i, all) { return id && all.indexOf(id) === i; });
+
+    if (deviceIds.length) {
+      var devs = await Talaks.client.from('devices').select('id, name').in('id', deviceIds);
+      (devs.data || []).forEach(function (d) { deviceNames[d.id] = d.name; });
+    }
+
+    renderPlans(subscriptions, deviceNames);
+
+    if (profile) {
+      document.getElementById('pf-name').value     = profile.full_name || '';
+      document.getElementById('pf-phone').value    = profile.phone || '';
+      document.getElementById('pf-address').value  = profile.address_line || '';
+      document.getElementById('pf-suburb').value   = profile.suburb || '';
+      document.getElementById('pf-state').value    = profile.state || '';
+      document.getElementById('pf-postcode').value = profile.postcode || '';
+    } else if (user.user_metadata && user.user_metadata.full_name) {
+      // Fall back to the name captured at sign-up before a profile row exists.
+      document.getElementById('pf-name').value = user.user_metadata.full_name;
+    }
+
+    renderVerification(verification);
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('dash').style.display = 'block';
+  })();
+</script>
+
 </body>
 </html>
