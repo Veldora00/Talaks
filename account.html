@@ -51,6 +51,10 @@
   .kv{ display:flex; justify-content:space-between; padding:10px 0; font-size:14px; color:var(--ink-dim); border-bottom:1px solid var(--line); }
   .kv:last-child{ border-bottom:none; }
   .kv b{ color:var(--ink); font-weight:500; }
+  /* Only used when a customer has more than one plan. */
+  .plan-block + .plan-block{ margin-top:18px; padding-top:18px; border-top:1px solid var(--line); }
+  .plan-block-head{ display:flex; align-items:center; gap:10px; margin-bottom:4px; font-size:14.5px; color:var(--ink); }
+  .plan-block-head .status-pill{ margin-left:auto; }
 
   .danger-zone{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; }
   .danger-zone p{ margin:0; font-size:13.5px; color:var(--ink-dim); }
@@ -221,9 +225,12 @@
     return new Date(iso).toLocaleDateString('en-AU', { day:'numeric', month:'short', year:'numeric' });
   }
 
-  function renderPlan(sub, deviceName){
-    var pill = document.getElementById('plan-status');
-    var body = document.getElementById('plan-body');
+  /* Renders one plan. `bodyEl` / `pillEl` are passed in when a customer has
+   * more than one plan and each gets its own block; with one plan they default
+   * to the panel's own body and header pill, exactly as before. */
+  function renderPlan(sub, deviceName, bodyEl, pillEl){
+    var pill = pillEl || document.getElementById('plan-status');
+    var body = bodyEl || document.getElementById('plan-body');
 
     if (!sub) {
       pill.style.display = 'none';
@@ -257,8 +264,8 @@
               'your first payment is taken then and your device ships.</p>' +
               // A waiting customer should never need to email us to get out.
               // Nothing has been charged, so this costs no one anything.
-              '<div class="form-error" id="cancel-error"></div>' +
-              '<button class="signout-btn" id="cancel-btn" style="margin-top:4px;">' +
+              '<div class="form-error" data-cancel-error></div>' +
+              '<button class="signout-btn" data-cancel-btn style="margin-top:4px;">' +
               'Cancel this order</button>';
     } else if (sub.status === 'withdrawn') {
       rows += '<p class="form-note">You cancelled this order, and nothing was charged. ' +
@@ -278,18 +285,20 @@
 
     // Bound after the HTML is written, because the button only exists for a
     // pending order and the panel is re-rendered whenever the plan changes.
-    var cancelBtn = document.getElementById('cancel-btn');
+    // Scoped to this plan's own block — with two pending orders on screen
+    // there are two buttons, and each must cancel its own row.
+    var cancelBtn = body.querySelector('[data-cancel-btn]');
     if (cancelBtn) {
       cancelBtn.addEventListener('click', function () {
         if (!confirm('Cancel this order?\n\nNothing has been charged, so there is no fee. ' +
                      'You can order again any time.')) return;
         cancelBtn.disabled = true;
         cancelBtn.textContent = 'Cancelling…';
-        Talaks.client.rpc('cancel_my_application').then(function (res) {
+        Talaks.client.rpc('cancel_my_application', { p_subscription_id: sub.id }).then(function (res) {
           if (res.error) {
             cancelBtn.disabled = false;
             cancelBtn.textContent = 'Cancel this order';
-            var err = document.getElementById('cancel-error');
+            var err = body.querySelector('[data-cancel-error]');
             if (err) {
               err.textContent = res.error.message || 'Could not cancel. Please try again.';
               err.style.display = 'block';
@@ -300,6 +309,49 @@
         });
       });
     }
+  }
+
+  /* One plan renders exactly as it always did. Two or more get a block each,
+   * newest first, with the device name and that plan's own status at the top —
+   * a second order must never be invisible behind the first, least of all one
+   * that is being charged. */
+  function renderPlans(subs, deviceNames){
+    var pill = document.getElementById('plan-status');
+    var body = document.getElementById('plan-body');
+
+    if (!subs.length) { renderPlan(null); return; }
+
+    if (subs.length === 1) {
+      renderPlan(subs[0], deviceNames[subs[0].device_id]);
+      return;
+    }
+
+    pill.style.display = 'none';
+    body.innerHTML = '';
+
+    subs.forEach(function (sub) {
+      var block = document.createElement('div');
+      block.className = 'plan-block';
+
+      var head = document.createElement('div');
+      head.className = 'plan-block-head';
+
+      var name = document.createElement('b');
+      name.textContent = deviceNames[sub.device_id] || sub.device_id;
+
+      var blockPill = document.createElement('span');
+      blockPill.className = 'status-pill pending';
+
+      var blockBody = document.createElement('div');
+
+      head.appendChild(name);
+      head.appendChild(blockPill);
+      block.appendChild(head);
+      block.appendChild(blockBody);
+      body.appendChild(block);
+
+      renderPlan(sub, deviceNames[sub.device_id], blockBody, blockPill);
+    });
   }
 
   var STATUS_STYLES = {
@@ -373,19 +425,24 @@
     document.getElementById('who').textContent = user.email;
     document.getElementById('sec-email').textContent = user.email;
 
-    var [profile, verification, subscription] = await Promise.all([
+    var [profile, verification, subscriptions] = await Promise.all([
       Talaks.getProfile(user.id),
       Talaks.latestVerification(user.id),
-      Talaks.latestSubscription(user.id),
+      Talaks.allSubscriptions(user.id),
     ]);
 
-    var deviceName = null;
-    if (subscription && subscription.device_id) {
-      var dev = await Talaks.client.from('devices').select('name')
-        .eq('id', subscription.device_id).maybeSingle();
-      deviceName = dev.data && dev.data.name;
+    // One query for every device across every plan, rather than one per plan.
+    var deviceNames = {};
+    var deviceIds = subscriptions
+      .map(function (s) { return s.device_id; })
+      .filter(function (id, i, all) { return id && all.indexOf(id) === i; });
+
+    if (deviceIds.length) {
+      var devs = await Talaks.client.from('devices').select('id, name').in('id', deviceIds);
+      (devs.data || []).forEach(function (d) { deviceNames[d.id] = d.name; });
     }
-    renderPlan(subscription, deviceName);
+
+    renderPlans(subscriptions, deviceNames);
 
     if (profile) {
       document.getElementById('pf-name').value     = profile.full_name || '';
