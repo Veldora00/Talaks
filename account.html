@@ -417,6 +417,17 @@
     show('pf-ok', 'Saved.');
   }
 
+  /* Every plan, from whichever auth.js is actually deployed.
+   *
+   * The files here are uploaded by hand, so this page can end up live next to
+   * an older assets/auth.js. When that happens it falls back to the single-plan
+   * helper instead of throwing on a function that isn't there — a stale upload
+   * should cost you the second plan on screen, not the whole page. */
+  function fetchSubscriptions(userId){
+    if (typeof Talaks.allSubscriptions === 'function') return Talaks.allSubscriptions(userId);
+    return Talaks.latestSubscription(userId).then(function (s) { return s ? [s] : []; });
+  }
+
   (async function init(){
     var session = await Talaks.requireAuth();
     if (!session) return; // requireAuth already redirected
@@ -428,7 +439,7 @@
     var [profile, verification, subscriptions] = await Promise.all([
       Talaks.getProfile(user.id),
       Talaks.latestVerification(user.id),
-      Talaks.allSubscriptions(user.id),
+      fetchSubscriptions(user.id),
     ]);
 
     // One query for every device across every plan, rather than one per plan.
@@ -460,7 +471,18 @@
 
     document.getElementById('loading').style.display = 'none';
     document.getElementById('dash').style.display = 'block';
-  })();
+  })().catch(function (err) {
+    // Anything unhandled above used to leave "Loading your account…" on screen
+    // for ever, which looks identical to a dead site. Say something instead.
+    console.error('Account page failed to load', err);
+    var loading = document.getElementById('loading');
+    if (loading) {
+      loading.innerHTML = 'We couldn’t load your account just now. ' +
+        '<a href="account.html" style="color:var(--brand-deep);">Try again</a>, ' +
+        'or email <a href="mailto:info@talaks.com.au" style="color:var(--brand-deep);">info@talaks.com.au</a> ' +
+        'if it keeps happening.';
+    }
+  });
 </script>
 
 </body>

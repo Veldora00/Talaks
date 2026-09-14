@@ -6,462 +6,104 @@
 <link rel="icon" type="image/png" sizes="512x512" href="assets/favicon-512.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Talaks — Your account</title>
+<title>Talaks — Privacy Policy</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,380;9..144,440;9..144,560&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/talaks.css">
 <style>
-  /* Dashboard layout — a sidebar of sections beside the panels, collapsing to
-     a stacked list on narrow screens. Deliberately not the stepper shell that
-     checkout uses, or the single-column card that sign-in uses. */
-  .dash{ max-width:960px; margin:0 auto; padding:0 28px 90px; }
-  @media (max-width:640px){ .dash{ padding:0 20px 70px; } }
-
-  .dash-head{ display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:14px; margin:40px 0 30px; }
-  .dash-head h1{ font-family:var(--serif); font-weight:440; font-size:30px; margin:0 0 4px; letter-spacing:-0.01em; }
-  .dash-head .who{ font-size:14px; color:var(--ink-dim); margin:0; }
-
-  .dash-grid{ display:grid; grid-template-columns:200px 1fr; gap:30px; align-items:start; }
-  @media (max-width:820px){ .dash-grid{ grid-template-columns:1fr; gap:20px; } }
-
-  .side-nav{ position:sticky; top:90px; display:flex; flex-direction:column; gap:2px; }
-  @media (max-width:820px){ .side-nav{ position:static; flex-direction:row; flex-wrap:wrap; gap:8px; } }
-  .side-nav a{
-    font-size:14px; color:var(--ink-dim); text-decoration:none; padding:9px 12px;
-    border-radius:8px; transition:background 0.15s, color 0.15s;
+  :root{
+    --paper:#FFFFFF; --paper-warm:#FBF8F3;
+    --ink:#161A20; --ink-dim:#5B6472; --ink-faint:#8B93A1;
+    --line: rgba(22,26,32,0.10); --line-strong: rgba(22,26,32,0.18);
+    --brand:#FF5A36; --brand-deep:#E8471F; --teal:#1E9E82;
+    --serif: 'Fraunces', Georgia, serif; --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   }
-  .side-nav a:hover{ background:var(--paper-warm); color:var(--ink); }
-  @media (max-width:820px){ .side-nav a{ border:1px solid var(--line); } }
+  *{box-sizing:border-box;}
+  body{ margin:0; background:var(--paper); color:var(--ink); font-family:var(--sans); line-height:1.6; -webkit-font-smoothing:antialiased; }
+  .wrap{max-width:760px; margin:0 auto; padding:0 28px;}
+  @media (max-width:640px){ .wrap{padding:0 20px;} }
+  nav{ position:sticky; top:0; z-index:50; background:rgba(255,255,255,0.92); backdrop-filter: blur(8px); border-bottom:1px solid var(--line); }
+  nav .row{ display:flex; align-items:center; justify-content:space-between; padding:18px 0; max-width:760px; margin:0 auto; padding-left:28px; padding-right:28px; }
+  .brand{ font-family:var(--serif); font-size:22px; font-weight:640; text-decoration:none; color:var(--ink); }
+  .brand span{color:var(--brand);}
+  .back{ font-size:14px; color:var(--ink-dim); text-decoration:none; }
+  .back:hover{ color:var(--ink); }
 
-  .panel{ border:1px solid var(--line); border-radius:16px; background:var(--paper-warm); padding:26px; margin-bottom:20px; scroll-margin-top:90px; }
-  .panel h2{
-    font-size:13px; letter-spacing:0.4px; color:var(--teal); font-weight:600;
-    margin:0 0 6px; text-transform:none;
-  }
-  .panel .panel-hint{ font-size:13.5px; color:var(--ink-dim); margin:0 0 18px; }
-  .panel-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
-
-  .empty{
-    border:1px dashed var(--line-strong); border-radius:12px; padding:24px;
-    text-align:center; font-size:14px; color:var(--ink-dim);
-  }
-  .empty a{ color:var(--brand-deep); }
-
-  .kv{ display:flex; justify-content:space-between; padding:10px 0; font-size:14px; color:var(--ink-dim); border-bottom:1px solid var(--line); }
-  .kv:last-child{ border-bottom:none; }
-  .kv b{ color:var(--ink); font-weight:500; }
-  /* Only used when a customer has more than one plan. */
-  .plan-block + .plan-block{ margin-top:18px; padding-top:18px; border-top:1px solid var(--line); }
-  .plan-block-head{ display:flex; align-items:center; gap:10px; margin-bottom:4px; font-size:14.5px; color:var(--ink); }
-  .plan-block-head .status-pill{ margin-left:auto; }
-
-  .danger-zone{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; }
-  .danger-zone p{ margin:0; font-size:13.5px; color:var(--ink-dim); }
-  .signout-btn{
-    background:none; border:1px solid var(--line-strong); border-radius:999px; padding:10px 22px;
-    font-family:inherit; font-size:14px; color:var(--ink); cursor:pointer; transition:all 0.15s;
-  }
-  .signout-btn:hover{ border-color:var(--danger); color:var(--danger); }
-
-  .loading{ text-align:center; padding:80px 0; color:var(--ink-faint); font-size:14px; }
+  main{ padding:48px 0 100px; }
+  h1{ font-family:var(--serif); font-weight:440; font-size:36px; margin:0 0 8px; letter-spacing:-0.01em; }
+  .updated{ font-size:13px; color:var(--ink-faint); margin:0 0 24px; }
+  h2{ font-family:var(--serif); font-weight:500; font-size:21px; margin:40px 0 14px; letter-spacing:-0.01em; }
+  p{ font-size:15px; color:var(--ink-dim); margin:0 0 14px; }
+  ul{ padding-left:22px; font-size:15px; color:var(--ink-dim); }
+  li{ margin-bottom:8px; }
+  .draft-note{ border:1px solid rgba(255,90,54,0.35); background:#FFF4EE; border-radius:12px; padding:18px 20px; font-size:14px; color:var(--ink-dim); margin-bottom:8px; }
+  .draft-note b{ color:var(--brand-deep); }
+  footer{ border-top:1px solid var(--line); padding:32px 0; font-size:13px; color:var(--ink-faint); }
+  footer a{ color:var(--ink-dim); text-decoration:none; }
+  footer a:hover{ color:var(--ink); }
 </style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
 
 <nav>
-  <div class="wrap row">
+  <div class="row">
     <a href="index.html" class="brand">Tal<span>a</span>ks</a>
-    <div class="navlinks">
-      <a href="catalog.html">Devices</a>
-      <a href="index.html#how">How it works</a>
-      <a href="faq.html">FAQ</a>
-    </div>
+    <a href="index.html" class="back">&larr; Back home</a>
   </div>
 </nav>
 
-<div id="loading" class="loading">Loading your account…</div>
+<main class="wrap">
+  <h1>Privacy Policy</h1>
+  <p class="updated">Last updated: September 2026 &middot; Talaks Trading (ABN 52 477 928 344), Sydney, Australia</p>
 
-<div class="dash" id="dash" style="display:none;">
+  <p>Talaks Trading (we, us, our) handles personal information in accordance with the <i>Privacy Act 1988</i> (Cth) and the Australian Privacy Principles (APPs). This policy explains what we collect, why, who we share it with (including overseas), how long we keep it, and how to make a complaint.</p>
 
-  <div class="dash-head">
-    <div>
-      <h1>Your account</h1>
-      <p class="who" id="who">—</p>
-    </div>
-  </div>
+  <h2>What we collect</h2>
+  <p>To assess an application and run your plan, we collect: your name, contact details, and delivery address; the outcome of an identity check carried out by our identity verification provider, Didit; payment information, handled directly by our payment processor, Stripe &mdash; Talaks never receives or stores your full card number; and details of the device, plan, and term you select.</p>
+  <p><b>Identity documents and biometric data specifically:</b> the photo of your ID and the liveness check happen entirely on Didit&rsquo;s own hosted page, not ours. No one at Talaks sees the photo of your document or any biometric or facial data, and we do not store them. Didit sends its result to our system automatically, and our system keeps only a short receipt of it: the name on your document, the document type, issuing country and how it was checked, a yes/no confirmation that you are over 18, and whether each check passed. Everything else Didit sends &mdash; your document number, your date of birth, and the links to the scans, portrait and liveness video &mdash; is discarded at that moment and never written down on our side. Your date of birth itself is never stored; only the over-18 answer is. The full record stays with Didit.</p>
 
-  <div class="dash-grid">
-    <div class="side-nav">
-      <a href="#plan">Your plan</a>
-      <a href="#identity">Identity</a>
-      <a href="#details">Delivery details</a>
-      <a href="#security">Security</a>
-    </div>
+  <h2>How we use it</h2>
+  <ul>
+    <li>To verify your identity and assess your application.</li>
+    <li>To set up, bill, and manage your plan.</li>
+    <li>To arrange delivery, returns, and device repairs.</li>
+    <li>To contact you about your plan, including payment and return reminders.</li>
+    <li>To meet our legal and regulatory obligations, including under the National Credit Code.</li>
+  </ul>
 
-    <div>
+  <h2>Who we share it with, and overseas disclosure</h2>
+  <p>We share the minimum necessary information with the service providers who help us operate, and are upfront that this means some of your information is handled or stored outside Australia as a normal part of how these providers run their services:</p>
+  <ul>
+    <li><b>Didit</b> (identity verification) &mdash; confirms who you are; document images and biometric checks are processed on Didit&rsquo;s own infrastructure, not ours.</li>
+    <li><b>Stripe</b> (payments) &mdash; processes your payment and stores your card details; Stripe operates globally, including in the United States.</li>
+    <li><b>Supabase</b> (our database provider) &mdash; stores your account, order, and plan records. Our database is hosted in Supabase&rsquo;s Mumbai, India region (AWS ap-south-1), not in Australia.</li>
+    <li><b>Resend</b> (email) &mdash; sends transactional emails about your plan (confirmations, shipping, payment notices) on our behalf.</li>
+    <li>Delivery partners, to get your device to you.</li>
+  </ul>
+  <p>We do not sell your personal information to third parties. Where we disclose information overseas, we rely on these providers&rsquo; own privacy and security commitments; we do not currently have a separate contractual data-handling agreement layered on top of each provider&rsquo;s standard terms.</p>
 
-      <section class="panel" id="plan">
-        <div class="panel-head">
-          <div>
-            <h2>Your plan</h2>
-            <p class="panel-hint">Your device, its term, and when it ends.</p>
-          </div>
-          <span class="status-pill pending" id="plan-status" style="display:none;">—</span>
-        </div>
-        <div id="plan-body">
-          <div class="empty">Loading…</div>
-        </div>
-      </section>
+  <h2>How long we keep it</h2>
+  <p>We keep your information for as long as your plan is active, and afterwards for as long as we're required to by law (including tax and financial record-keeping obligations, typically several years) or need it to resolve a dispute. Identity verification results are kept for as long as your account exists, so we can show we met our obligations if ever asked to.</p>
 
-      <section class="panel" id="identity">
-        <div class="panel-head">
-          <div>
-            <h2>Identity verification</h2>
-            <p class="panel-hint">A one-time ID and liveness check, handled by Didit.</p>
-          </div>
-          <span class="status-pill pending" id="id-status">Not started</span>
-        </div>
-        <div id="id-body"></div>
-      </section>
+  <h2>Your rights, and how to complain</h2>
+  <p>You can ask to see the personal information we hold about you, ask us to correct it, or ask how it's been used. To make a request, email <a href="mailto:info@talaks.com.au" style="color:var(--brand-deep);">info@talaks.com.au</a> and we will respond within a reasonable time, generally within 30 days.</p>
+  <p>If you're not satisfied with how we've handled your personal information or a request, tell us first at the same email address so we can put it right. If you remain unsatisfied, you can lodge a complaint with the <a href="https://www.oaic.gov.au/" style="color:var(--brand-deep);">Office of the Australian Information Commissioner (OAIC)</a>, the independent regulator for privacy in Australia.</p>
 
-      <section class="panel" id="details">
-        <h2>Delivery details</h2>
-        <p class="panel-hint">Where your device ships, and how we reach you about it.</p>
+  <h2>Security</h2>
+  <p>We use industry-standard measures to protect your information, and rely on established, security-audited providers (Supabase, Stripe, Didit) for the systems that store or process sensitive data rather than building our own.</p>
 
-        <div class="field">
-          <label for="pf-name">Full name</label>
-          <input type="text" id="pf-name" autocomplete="name">
-        </div>
-        <div class="field">
-          <label for="pf-phone">Phone</label>
-          <input type="tel" id="pf-phone" autocomplete="tel" placeholder="04XX XXX XXX">
-        </div>
-        <div class="field">
-          <label for="pf-address">Street address</label>
-          <input type="text" id="pf-address" autocomplete="address-line1">
-        </div>
-        <div class="field-row">
-          <div class="field">
-            <label for="pf-suburb">Suburb</label>
-            <input type="text" id="pf-suburb" autocomplete="address-level2">
-          </div>
-          <div class="field">
-            <label for="pf-state">State</label>
-            <select id="pf-state">
-              <option value="">Select…</option>
-              <option>NSW</option><option>VIC</option><option>QLD</option><option>WA</option>
-              <option>SA</option><option>TAS</option><option>ACT</option><option>NT</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="pf-postcode">Postcode</label>
-            <input type="text" id="pf-postcode" autocomplete="postal-code" inputmode="numeric" maxlength="4">
-          </div>
-        </div>
-        <div class="form-error" id="pf-error"></div>
-        <div class="form-ok" id="pf-ok"></div>
-        <button class="action-btn" id="pf-btn" onclick="saveDetails()">Save details</button>
-      </section>
+  <h2>Contact</h2>
+  <p>Questions about this policy or how your data is handled can be sent to <a href="mailto:info@talaks.com.au" style="color:var(--brand-deep);">info@talaks.com.au</a>.</p>
+</main>
 
-      <section class="panel" id="security">
-        <h2>Security</h2>
-        <p class="panel-hint">Your email address and password.</p>
-        <div class="kv"><span>Email</span><b id="sec-email">—</b></div>
-        <div class="kv"><span>Password</span><b><a href="reset-password.html" style="color:var(--brand-deep);">Change password</a></b></div>
-        <div style="height:18px;"></div>
-        <div class="danger-zone">
-          <p>Signed in on this device.</p>
-          <button class="signout-btn" onclick="Talaks.signOut()">Sign out</button>
-        </div>
-      </section>
-
-    </div>
-  </div>
-</div>
-
-<footer class="site-foot">
-  <div class="wrap foot-row">
-    <div class="foot-links">
-      <a href="catalog.html">Devices</a>
-      <a href="faq.html">FAQs</a>
-      <a href="terms.html">Terms of Use</a>
-      <a href="privacy.html">Privacy Policy</a>
-      <a href="mailto:info@talaks.com.au">info@talaks.com.au</a>
-    </div>
+<footer>
+  <div class="wrap" style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px;">
     <span>© 2026 Talaks Trading (ABN 52 477 928 344). Sydney, Australia.</span>
+    <span><a href="blog.html">Journal</a> &nbsp;&middot;&nbsp; <a href="faq.html">FAQs</a> &nbsp;·&nbsp; <a href="terms.html">Terms of Use</a> &nbsp;·&nbsp; <a href="mailto:info@talaks.com.au">info@talaks.com.au</a></span>
   </div>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="assets/auth.js"></script>
-<script>
-  var user = null;
-
-  function show(id, msg){
-    var el = document.getElementById(id);
-    el.textContent = msg || '';
-    el.style.display = msg ? 'block' : 'none';
-  }
-
-  // Didit statuses are stored verbatim, so map rather than string-compare in logic.
-  var PLAN_STYLES = {
-    pending_approval: { pill:'working', label:'Being reviewed' },
-    declined:  { pill:'pending', label:'Not approved' },
-    withdrawn: { pill:'pending', label:'Cancelled by you' },
-    active:    { pill:'done',    label:'Active' },
-    pending:   { pill:'working', label:'Awaiting payment' },
-    past_due:  { pill:'failed',  label:'Payment failed' },
-    completed: { pill:'pending', label:'Term completed' },
-    canceled:  { pill:'pending', label:'Ended' },
-  };
-
-  function escapeHtml(s){
-    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  }
-  function money(cents){ return '$' + Math.round(cents / 100).toLocaleString('en-AU'); }
-  function shortDate(iso){
-    if (!iso) return null;
-    return new Date(iso).toLocaleDateString('en-AU', { day:'numeric', month:'short', year:'numeric' });
-  }
-
-  /* Renders one plan. `bodyEl` / `pillEl` are passed in when a customer has
-   * more than one plan and each gets its own block; with one plan they default
-   * to the panel's own body and header pill, exactly as before. */
-  function renderPlan(sub, deviceName, bodyEl, pillEl){
-    var pill = pillEl || document.getElementById('plan-status');
-    var body = bodyEl || document.getElementById('plan-body');
-
-    if (!sub) {
-      pill.style.display = 'none';
-      body.innerHTML = '<div class="empty">No plan yet. <a href="catalog.html">Browse devices</a> to start one.</div>';
-      return;
-    }
-
-    var style = PLAN_STYLES[sub.status] || { pill:'working', label: sub.status };
-    pill.style.display = '';
-    pill.className = 'status-pill ' + style.pill;
-    pill.textContent = style.label;
-
-    var rows =
-      '<div class="kv"><span>Device</span><b>' + escapeHtml(deviceName || sub.device_id) +
-        ' &middot; ' + escapeHtml(sub.storage_gb) + ' &middot; ' + escapeHtml(sub.colour) + '</b></div>' +
-      '<div class="kv"><span>Monthly</span><b>' + money(sub.monthly_amount_cents) + '/mo</b></div>' +
-      '<div class="kv"><span>Term</span><b>' + sub.term_months + ' months</b></div>' +
-      '';
-
-    if (sub.status === 'active') {
-      if (sub.current_period_end) rows += '<div class="kv"><span>Next payment</span><b>' + shortDate(sub.current_period_end) + '</b></div>';
-      if (sub.cancel_at) rows += '<div class="kv"><span>Term ends</span><b>' + shortDate(sub.cancel_at) + '</b></div>';
-      rows += '<p class="form-note">Your plan stops on its own at the end of the term — it will not roll on month to month. ' +
-              'We\u2019ll be in touch beforehand to arrange the return, an extension, or an upgrade.</p>';
-    } else if (sub.status === 'past_due') {
-      rows += '<p class="form-note" style="color:var(--danger);">A payment didn\u2019t go through. Update your card and we\u2019ll retry automatically — ' +
-              'email <a href="mailto:info@talaks.com.au" style="color:var(--brand-deep);">info@talaks.com.au</a> if you need a hand.</p>';
-    } else if (sub.status === 'pending_approval') {
-      rows += '<p class="form-note"><b>Nothing has been charged.</b> We check every order before taking a ' +
-              'payment, usually within one business day. We’ll email you either way — if we go ahead, ' +
-              'your first payment is taken then and your device ships.</p>' +
-              // A waiting customer should never need to email us to get out.
-              // Nothing has been charged, so this costs no one anything.
-              '<div class="form-error" data-cancel-error></div>' +
-              '<button class="signout-btn" data-cancel-btn style="margin-top:4px;">' +
-              'Cancel this order</button>';
-    } else if (sub.status === 'withdrawn') {
-      rows += '<p class="form-note">You cancelled this order, and nothing was charged. ' +
-              '<a href="catalog.html" style="color:var(--brand-deep);">Browse devices</a> ' +
-              'whenever you want to start again.</p>';
-    } else if (sub.status === 'declined') {
-      rows += '<p class="form-note">We weren’t able to go ahead with this order, and you haven’t been ' +
-              'charged anything. Email <a href="mailto:info@talaks.com.au" style="color:var(--brand-deep);">info@talaks.com.au</a> ' +
-              'if you’d like to know more or want to try again.</p>';
-    } else if (sub.status === 'pending') {
-      rows += '<p class="form-note">We\u2019re waiting on your first payment to clear. This page updates on its own once it does.</p>';
-    } else if (sub.status === 'completed') {
-      rows += '<p class="form-note">This term has finished. <a href="catalog.html" style="color:var(--brand-deep);">Start a new plan</a> whenever you\u2019re ready.</p>';
-    }
-
-    body.innerHTML = rows;
-
-    // Bound after the HTML is written, because the button only exists for a
-    // pending order and the panel is re-rendered whenever the plan changes.
-    // Scoped to this plan's own block — with two pending orders on screen
-    // there are two buttons, and each must cancel its own row.
-    var cancelBtn = body.querySelector('[data-cancel-btn]');
-    if (cancelBtn) {
-      cancelBtn.addEventListener('click', function () {
-        if (!confirm('Cancel this order?\n\nNothing has been charged, so there is no fee. ' +
-                     'You can order again any time.')) return;
-        cancelBtn.disabled = true;
-        cancelBtn.textContent = 'Cancelling…';
-        Talaks.client.rpc('cancel_my_application', { p_subscription_id: sub.id }).then(function (res) {
-          if (res.error) {
-            cancelBtn.disabled = false;
-            cancelBtn.textContent = 'Cancel this order';
-            var err = body.querySelector('[data-cancel-error]');
-            if (err) {
-              err.textContent = res.error.message || 'Could not cancel. Please try again.';
-              err.style.display = 'block';
-            }
-            return;
-          }
-          location.reload();
-        });
-      });
-    }
-  }
-
-  /* One plan renders exactly as it always did. Two or more get a block each,
-   * newest first, with the device name and that plan's own status at the top —
-   * a second order must never be invisible behind the first, least of all one
-   * that is being charged. */
-  function renderPlans(subs, deviceNames){
-    var pill = document.getElementById('plan-status');
-    var body = document.getElementById('plan-body');
-
-    if (!subs.length) { renderPlan(null); return; }
-
-    if (subs.length === 1) {
-      renderPlan(subs[0], deviceNames[subs[0].device_id]);
-      return;
-    }
-
-    pill.style.display = 'none';
-    body.innerHTML = '';
-
-    subs.forEach(function (sub) {
-      var block = document.createElement('div');
-      block.className = 'plan-block';
-
-      var head = document.createElement('div');
-      head.className = 'plan-block-head';
-
-      var name = document.createElement('b');
-      name.textContent = deviceNames[sub.device_id] || sub.device_id;
-
-      var blockPill = document.createElement('span');
-      blockPill.className = 'status-pill pending';
-
-      var blockBody = document.createElement('div');
-
-      head.appendChild(name);
-      head.appendChild(blockPill);
-      block.appendChild(head);
-      block.appendChild(blockBody);
-      body.appendChild(block);
-
-      renderPlan(sub, deviceNames[sub.device_id], blockBody, blockPill);
-    });
-  }
-
-  var STATUS_STYLES = {
-    'Approved':    { pill:'done',    label:'Verified' },
-    'Declined':    { pill:'failed',  label:'Declined' },
-    'In Review':   { pill:'working', label:'In review' },
-    'In Progress': { pill:'working', label:'In progress' },
-    'Not Started': { pill:'pending', label:'Not started' },
-  };
-
-  function renderVerification(row){
-    var pill = document.getElementById('id-status');
-    var body = document.getElementById('id-body');
-
-    if (!row) {
-      pill.className = 'status-pill pending';
-      pill.textContent = 'Not started';
-      body.innerHTML = '<div class="empty">You’ll be asked to verify when you start a plan. '
-        + 'Nothing to do here yet.</div>';
-      return;
-    }
-
-    var style = STATUS_STYLES[row.status] || { pill:'working', label: row.status };
-    pill.className = 'status-pill ' + style.pill;
-    pill.textContent = style.label;
-
-    if (row.status === 'Approved') {
-      body.innerHTML = '<div class="kv"><span>Status</span><b>Verified — nothing further needed</b></div>';
-    } else if (row.status === 'Declined') {
-      body.innerHTML = '<div class="kv"><span>Status</span><b>Declined</b></div>'
-        + '<p class="form-note">If you think this is a mistake, email '
-        + '<a href="mailto:info@talaks.com.au" style="color:var(--brand-deep);">info@talaks.com.au</a> and we’ll take a look.</p>';
-    } else {
-      body.innerHTML = '<div class="kv"><span>Status</span><b>' + style.label + '</b></div>'
-        + '<p class="form-note">This usually finishes in a minute or two. Refresh to check again.</p>';
-    }
-  }
-
-  async function saveDetails(){
-    show('pf-error', ''); show('pf-ok', '');
-    var btn = document.getElementById('pf-btn');
-
-    var fields = {
-      full_name:    document.getElementById('pf-name').value.trim(),
-      phone:        document.getElementById('pf-phone').value.trim(),
-      address_line: document.getElementById('pf-address').value.trim(),
-      suburb:       document.getElementById('pf-suburb').value.trim(),
-      state:        document.getElementById('pf-state').value,
-      postcode:     document.getElementById('pf-postcode').value.trim(),
-    };
-
-    if (!fields.full_name) { show('pf-error', 'Please enter your full name.'); return; }
-    if (fields.postcode && !/^\d{4}$/.test(fields.postcode)) {
-      show('pf-error', 'An Australian postcode is four digits.');
-      return;
-    }
-
-    btn.disabled = true; btn.textContent = 'Saving…';
-    var { error } = await Talaks.saveProfile(user.id, fields);
-    btn.disabled = false; btn.textContent = 'Save details';
-
-    if (error) { show('pf-error', error.message); return; }
-    show('pf-ok', 'Saved.');
-  }
-
-  (async function init(){
-    var session = await Talaks.requireAuth();
-    if (!session) return; // requireAuth already redirected
-    user = session.user;
-
-    document.getElementById('who').textContent = user.email;
-    document.getElementById('sec-email').textContent = user.email;
-
-    var [profile, verification, subscriptions] = await Promise.all([
-      Talaks.getProfile(user.id),
-      Talaks.latestVerification(user.id),
-      Talaks.allSubscriptions(user.id),
-    ]);
-
-    // One query for every device across every plan, rather than one per plan.
-    var deviceNames = {};
-    var deviceIds = subscriptions
-      .map(function (s) { return s.device_id; })
-      .filter(function (id, i, all) { return id && all.indexOf(id) === i; });
-
-    if (deviceIds.length) {
-      var devs = await Talaks.client.from('devices').select('id, name').in('id', deviceIds);
-      (devs.data || []).forEach(function (d) { deviceNames[d.id] = d.name; });
-    }
-
-    renderPlans(subscriptions, deviceNames);
-
-    if (profile) {
-      document.getElementById('pf-name').value     = profile.full_name || '';
-      document.getElementById('pf-phone').value    = profile.phone || '';
-      document.getElementById('pf-address').value  = profile.address_line || '';
-      document.getElementById('pf-suburb').value   = profile.suburb || '';
-      document.getElementById('pf-state').value    = profile.state || '';
-      document.getElementById('pf-postcode').value = profile.postcode || '';
-    } else if (user.user_metadata && user.user_metadata.full_name) {
-      // Fall back to the name captured at sign-up before a profile row exists.
-      document.getElementById('pf-name').value = user.user_metadata.full_name;
-    }
-
-    renderVerification(verification);
-
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('dash').style.display = 'block';
-  })();
-</script>
-
 </body>
 </html>

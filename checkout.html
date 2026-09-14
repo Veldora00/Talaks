@@ -6,67 +6,52 @@
 <link rel="icon" type="image/png" sizes="512x512" href="assets/favicon-512.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Talaks — Your account</title>
+<title>Talaks — Confirm your plan</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,380;9..144,440;9..144,560&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/talaks.css">
 <style>
-  /* Dashboard layout — a sidebar of sections beside the panels, collapsing to
-     a stacked list on narrow screens. Deliberately not the stepper shell that
-     checkout uses, or the single-column card that sign-in uses. */
-  .dash{ max-width:960px; margin:0 auto; padding:0 28px 90px; }
-  @media (max-width:640px){ .dash{ padding:0 20px 70px; } }
+  /* Checkout is a stepper: a progress rail across the top, then one open
+     panel at a time. Distinct from the account dashboard and the sign-in card. */
+  .checkout{ max-width:820px; margin:0 auto; padding:0 28px 90px; }
+  @media (max-width:640px){ .checkout{ padding:0 20px 70px; } }
 
-  .dash-head{ display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:14px; margin:40px 0 30px; }
-  .dash-head h1{ font-family:var(--serif); font-weight:440; font-size:30px; margin:0 0 4px; letter-spacing:-0.01em; }
-  .dash-head .who{ font-size:14px; color:var(--ink-dim); margin:0; }
-
-  .dash-grid{ display:grid; grid-template-columns:200px 1fr; gap:30px; align-items:start; }
-  @media (max-width:820px){ .dash-grid{ grid-template-columns:1fr; gap:20px; } }
-
-  .side-nav{ position:sticky; top:90px; display:flex; flex-direction:column; gap:2px; }
-  @media (max-width:820px){ .side-nav{ position:static; flex-direction:row; flex-wrap:wrap; gap:8px; } }
-  .side-nav a{
-    font-size:14px; color:var(--ink-dim); text-decoration:none; padding:9px 12px;
-    border-radius:8px; transition:background 0.15s, color 0.15s;
+  .rail{ display:flex; align-items:center; gap:8px; margin:36px 0 30px; }
+  .rail-step{ display:flex; align-items:center; gap:9px; font-size:13px; color:var(--ink-faint); white-space:nowrap; }
+  .rail-step .dot{
+    width:22px; height:22px; border-radius:50%; border:1.5px solid var(--line-strong);
+    display:flex; align-items:center; justify-content:center; font-size:11.5px; font-weight:700;
+    color:var(--ink-faint); background:var(--paper); flex:none;
   }
-  .side-nav a:hover{ background:var(--paper-warm); color:var(--ink); }
-  @media (max-width:820px){ .side-nav a{ border:1px solid var(--line); } }
+  .rail-step.active{ color:var(--ink); font-weight:600; }
+  .rail-step.active .dot{ border-color:var(--brand); background:var(--brand); color:var(--brand-ink); }
+  .rail-step.done{ color:var(--teal); }
+  .rail-step.done .dot{ border-color:var(--teal); background:var(--teal); color:var(--brand-ink); }
+  .rail-line{ flex:1; height:1.5px; background:var(--line-strong); min-width:12px; }
+  @media (max-width:600px){ .rail-step span.label{ display:none; } .rail-line{ min-width:0; } }
 
-  .panel{ border:1px solid var(--line); border-radius:16px; background:var(--paper-warm); padding:26px; margin-bottom:20px; scroll-margin-top:90px; }
-  .panel h2{
-    font-size:13px; letter-spacing:0.4px; color:var(--teal); font-weight:600;
-    margin:0 0 6px; text-transform:none;
-  }
-  .panel .panel-hint{ font-size:13.5px; color:var(--ink-dim); margin:0 0 18px; }
-  .panel-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+  .plan-row{ display:flex; gap:18px; align-items:center; }
+  .plan-row img{ width:70px; height:90px; object-fit:contain; background:var(--paper); padding:8px; border:1px solid var(--line); border-radius:10px; }
+  .plan-details .pn{ font-size:17px; font-weight:600; margin-bottom:4px; }
+  .plan-details .pd{ font-size:13.5px; color:var(--ink-dim); }
 
-  .empty{
-    border:1px dashed var(--line-strong); border-radius:12px; padding:24px;
-    text-align:center; font-size:14px; color:var(--ink-dim);
-  }
-  .empty a{ color:var(--brand-deep); }
+  .summary-row{ display:flex; justify-content:space-between; padding:9px 0; font-size:14px; color:var(--ink-dim); }
+  .summary-row:not(:last-child){ border-bottom:1px solid var(--line); }
+  .summary-row b{ color:var(--ink); }
+  .summary-total{ font-family:var(--serif); font-size:22px; color:var(--brand); }
 
-  .kv{ display:flex; justify-content:space-between; padding:10px 0; font-size:14px; color:var(--ink-dim); border-bottom:1px solid var(--line); }
-  .kv:last-child{ border-bottom:none; }
-  .kv b{ color:var(--ink); font-weight:500; }
-  /* Only used when a customer has more than one plan. */
-  .plan-block + .plan-block{ margin-top:18px; padding-top:18px; border-top:1px solid var(--line); }
-  .plan-block-head{ display:flex; align-items:center; gap:10px; margin-bottom:4px; font-size:14.5px; color:var(--ink); }
-  .plan-block-head .status-pill{ margin-left:auto; }
+  .step-copy{ font-size:13.5px; color:var(--ink-dim); margin:0 0 16px; }
 
-  .danger-zone{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; }
-  .danger-zone p{ margin:0; font-size:13.5px; color:var(--ink-dim); }
-  .signout-btn{
-    background:none; border:1px solid var(--line-strong); border-radius:999px; padding:10px 22px;
-    font-family:inherit; font-size:14px; color:var(--ink); cursor:pointer; transition:all 0.15s;
-  }
-  .signout-btn:hover{ border-color:var(--danger); color:var(--danger); }
+  /* A completed step collapses to a one-line recap with an edit affordance. */
+  .recap{ display:flex; justify-content:space-between; align-items:flex-start; gap:14px; font-size:14px; color:var(--ink-dim); }
+  .recap .lines{ line-height:1.7; }
+  .recap b{ color:var(--ink); font-weight:500; }
 
   .loading{ text-align:center; padding:80px 0; color:var(--ink-faint); font-size:14px; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="assets/pricing.js"></script>
 </head>
 <body>
 
@@ -74,119 +59,133 @@
   <div class="wrap row">
     <a href="index.html" class="brand">Tal<span>a</span>ks</a>
     <div class="navlinks">
-      <a href="catalog.html">Devices</a>
-      <a href="index.html#how">How it works</a>
-      <a href="faq.html">FAQ</a>
+      <a href="catalog.html">&larr; Back to devices</a>
     </div>
   </div>
 </nav>
 
-<div id="loading" class="loading">Loading your account…</div>
+<div id="loading" class="loading">Loading your plan…</div>
 
-<div class="dash" id="dash" style="display:none;">
+<div class="checkout" id="checkout" style="display:none;">
 
-  <div class="dash-head">
-    <div>
-      <h1>Your account</h1>
-      <p class="who" id="who">—</p>
+  <h1 class="page-title">Confirm your plan</h1>
+  <p class="lede">Three steps before your device ships — where it goes, who you are, then your card. Nothing is charged until we confirm your order.</p>
+
+  <div class="rail">
+    <div class="rail-step active" id="rail-1"><span class="dot">1</span><span class="label">Delivery</span></div>
+    <div class="rail-line"></div>
+    <div class="rail-step" id="rail-2"><span class="dot">2</span><span class="label">Identity</span></div>
+    <div class="rail-line"></div>
+    <div class="rail-step" id="rail-3"><span class="dot">3</span><span class="label">Payment</span></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Your selection</div>
+    <div class="plan-row">
+      <img id="plan-img" src="" alt="">
+      <div class="plan-details">
+        <div class="pn" id="plan-name">—</div>
+        <div class="pd" id="plan-detail">—</div>
+      </div>
     </div>
   </div>
 
-  <div class="dash-grid">
-    <div class="side-nav">
-      <a href="#plan">Your plan</a>
-      <a href="#identity">Identity</a>
-      <a href="#details">Delivery details</a>
-      <a href="#security">Security</a>
+  <!-- Step 1 — delivery details -->
+  <div class="card" id="card-delivery">
+    <div class="card-title">
+      <span class="step-num" id="num-1">1</span> Delivery details
+      <span class="status-pill pending" id="delivery-status" style="margin-left:auto;">Needed</span>
     </div>
 
-    <div>
-
-      <section class="panel" id="plan">
-        <div class="panel-head">
-          <div>
-            <h2>Your plan</h2>
-            <p class="panel-hint">Your device, its term, and when it ends.</p>
-          </div>
-          <span class="status-pill pending" id="plan-status" style="display:none;">—</span>
-        </div>
-        <div id="plan-body">
-          <div class="empty">Loading…</div>
-        </div>
-      </section>
-
-      <section class="panel" id="identity">
-        <div class="panel-head">
-          <div>
-            <h2>Identity verification</h2>
-            <p class="panel-hint">A one-time ID and liveness check, handled by Didit.</p>
-          </div>
-          <span class="status-pill pending" id="id-status">Not started</span>
-        </div>
-        <div id="id-body"></div>
-      </section>
-
-      <section class="panel" id="details">
-        <h2>Delivery details</h2>
-        <p class="panel-hint">Where your device ships, and how we reach you about it.</p>
-
+    <div id="delivery-form">
+      <p class="step-copy">Where should the device go? We’ll use these details for delivery and returns.</p>
+      <div class="field">
+        <label for="d-name">Full name</label>
+        <input type="text" id="d-name" autocomplete="name" placeholder="As it appears on your ID">
+      </div>
+      <div class="field">
+        <label for="d-phone">Phone</label>
+        <input type="tel" id="d-phone" autocomplete="tel" placeholder="04XX XXX XXX">
+      </div>
+      <div class="field">
+        <label for="d-address">Street address</label>
+        <input type="text" id="d-address" autocomplete="address-line1" placeholder="12 Example Street">
+      </div>
+      <div class="field-row">
         <div class="field">
-          <label for="pf-name">Full name</label>
-          <input type="text" id="pf-name" autocomplete="name">
+          <label for="d-suburb">Suburb</label>
+          <input type="text" id="d-suburb" autocomplete="address-level2">
         </div>
         <div class="field">
-          <label for="pf-phone">Phone</label>
-          <input type="tel" id="pf-phone" autocomplete="tel" placeholder="04XX XXX XXX">
+          <label for="d-state">State</label>
+          <select id="d-state">
+            <option value="">Select…</option>
+            <option>NSW</option><option>VIC</option><option>QLD</option><option>WA</option>
+            <option>SA</option><option>TAS</option><option>ACT</option><option>NT</option>
+          </select>
         </div>
         <div class="field">
-          <label for="pf-address">Street address</label>
-          <input type="text" id="pf-address" autocomplete="address-line1">
+          <label for="d-postcode">Postcode</label>
+          <input type="text" id="d-postcode" autocomplete="postal-code" inputmode="numeric" maxlength="4">
         </div>
-        <div class="field-row">
-          <div class="field">
-            <label for="pf-suburb">Suburb</label>
-            <input type="text" id="pf-suburb" autocomplete="address-level2">
-          </div>
-          <div class="field">
-            <label for="pf-state">State</label>
-            <select id="pf-state">
-              <option value="">Select…</option>
-              <option>NSW</option><option>VIC</option><option>QLD</option><option>WA</option>
-              <option>SA</option><option>TAS</option><option>ACT</option><option>NT</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="pf-postcode">Postcode</label>
-            <input type="text" id="pf-postcode" autocomplete="postal-code" inputmode="numeric" maxlength="4">
-          </div>
-        </div>
-        <div class="form-error" id="pf-error"></div>
-        <div class="form-ok" id="pf-ok"></div>
-        <button class="action-btn" id="pf-btn" onclick="saveDetails()">Save details</button>
-      </section>
+      </div>
+      <div class="form-error" id="d-error"></div>
+      <button class="action-btn" id="d-btn" onclick="saveDelivery()">Save and continue</button>
+    </div>
 
-      <section class="panel" id="security">
-        <h2>Security</h2>
-        <p class="panel-hint">Your email address and password.</p>
-        <div class="kv"><span>Email</span><b id="sec-email">—</b></div>
-        <div class="kv"><span>Password</span><b><a href="reset-password.html" style="color:var(--brand-deep);">Change password</a></b></div>
-        <div style="height:18px;"></div>
-        <div class="danger-zone">
-          <p>Signed in on this device.</p>
-          <button class="signout-btn" onclick="Talaks.signOut()">Sign out</button>
-        </div>
-      </section>
-
+    <div id="delivery-recap" style="display:none;">
+      <div class="recap">
+        <div class="lines" id="recap-lines"></div>
+        <button class="text-btn" onclick="editDelivery()">Edit</button>
+      </div>
     </div>
   </div>
+
+  <!-- Step 2 — identity -->
+  <div class="card locked" id="card-identity">
+    <div class="card-title">
+      <span class="step-num idle" id="num-2">2</span> Verify your identity
+      <span class="status-pill pending" id="didit-status" style="margin-left:auto;">Locked</span>
+    </div>
+    <p class="step-copy">We use Didit to confirm who you are — a photo ID and a quick liveness check, done on their secure page, not ours.</p>
+    <div class="form-error" id="v-error"></div>
+    <button class="action-btn" id="btn-verify" onclick="startVerification()" disabled>Start identity verification</button>
+  </div>
+
+  <!-- Step 3 — payment -->
+  <div class="card locked" id="card-payment">
+    <div class="card-title">
+      <span class="step-num idle" id="num-3">3</span> Set up payment
+      <span class="status-pill pending" id="pay-status" style="margin-left:auto;">Locked</span>
+    </div>
+    <p class="step-copy"><b>We won’t charge anything today.</b> Your card is entered on Stripe’s secure page — it never
+      touches Talaks’ servers — and we hold it while we review your order. Talaks confirms every order before the first
+      payment is taken, usually within one business day. If we can’t fill it, you’re charged nothing at all.</p>
+    <p class="form-note" id="pay-note">Your plan runs for its full term and then stops. It does not roll on month to month, and there is nothing to cancel at the end.</p>
+    <div class="form-error" id="p-error"></div>
+    <button class="action-btn" id="btn-pay" onclick="startPayment()" disabled>Continue to card details</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Order summary</div>
+    <div class="summary-row"><span>Device</span><b id="sum-device">—</b></div>
+    <div class="summary-row"><span>Storage / Colour</span><b id="sum-spec">—</b></div>
+    <div class="summary-row"><span>Term</span><b id="sum-term">—</b></div>
+    <div class="summary-row"><span>Recommended retail price</span><b id="sum-rrp">—</b></div>
+    <div class="summary-row"><span>Total over term</span><b id="sum-total">—</b></div>
+    <div class="summary-row"><span>Monthly payment</span><b class="summary-total" id="sum-monthly">—</b></div>
+  </div>
+
+  <p class="microcopy">Identity verification runs on Didit’s hosted flow. Your card is validated and saved by Stripe when you submit — nothing is charged until your order is approved.</p>
 </div>
 
 <footer class="site-foot">
   <div class="wrap foot-row">
     <div class="foot-links">
-      <a href="catalog.html">Devices</a>
+      <a href="blog.html">Journal</a>
       <a href="faq.html">FAQs</a>
       <a href="terms.html">Terms of Use</a>
+      <a href="terms.html#repairs">Damage and repairs</a>
       <a href="privacy.html">Privacy Policy</a>
       <a href="mailto:info@talaks.com.au">info@talaks.com.au</a>
     </div>
@@ -196,7 +195,45 @@
 
 <script src="assets/auth.js"></script>
 <script>
+  var PLACEHOLDER_IMG = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="140" height="180"><rect width="140" height="180" fill="#FBF8F3"/><text x="50%" y="50%" font-family="sans-serif" font-size="10" fill="#8B93A1" text-anchor="middle" dominant-baseline="middle">No photo</text></svg>'
+  );
+  var PLAN_KEY = 'talaks_plan';
+  var VERIFY_KEY = 'talaks_verification_session';
+
   var user = null;
+  var plan = null;      // { device, storage, colour, term }
+  var pollHandle = null;
+
+  /* --- plan selection ---------------------------------------------------
+   * Didit's callback lands back on a bare checkout.html, so the query string
+   * that carried the device choice is gone by then. Stash it on arrival and
+   * read it back when the params are missing.
+   */
+  function resolvePlan(){
+    var p = new URLSearchParams(location.search);
+    if (p.get('device')) {
+      var picked = {
+        device:  p.get('device'),
+        storage: p.get('storage'),
+        colour:  p.get('colour'),
+        term:    parseInt(p.get('term'), 10),
+      };
+      try { sessionStorage.setItem(PLAN_KEY, JSON.stringify(picked)); } catch (e) {}
+      return picked;
+    }
+    try {
+      var saved = sessionStorage.getItem(PLAN_KEY);
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) { return null; }
+  }
+
+  function money(n){
+    var r = Math.round(n * 100) / 100;
+    return '$' + r.toLocaleString('en-AU', r % 1 === 0
+      ? { maximumFractionDigits: 0 }
+      : { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
 
   function show(id, msg){
     var el = document.getElementById(id);
@@ -204,262 +241,421 @@
     el.style.display = msg ? 'block' : 'none';
   }
 
-  // Didit statuses are stored verbatim, so map rather than string-compare in logic.
-  var PLAN_STYLES = {
-    pending_approval: { pill:'working', label:'Being reviewed' },
-    declined:  { pill:'pending', label:'Not approved' },
-    withdrawn: { pill:'pending', label:'Cancelled by you' },
-    active:    { pill:'done',    label:'Active' },
-    pending:   { pill:'working', label:'Awaiting payment' },
-    past_due:  { pill:'failed',  label:'Payment failed' },
-    completed: { pill:'pending', label:'Term completed' },
-    canceled:  { pill:'pending', label:'Ended' },
-  };
-
-  function escapeHtml(s){
-    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  }
-  function money(cents){ return '$' + Math.round(cents / 100).toLocaleString('en-AU'); }
-  function shortDate(iso){
-    if (!iso) return null;
-    return new Date(iso).toLocaleDateString('en-AU', { day:'numeric', month:'short', year:'numeric' });
+  function noPlan(){
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('checkout').style.display = 'block';
+    document.getElementById('checkout').innerHTML =
+      '<h1 class="page-title">No plan selected</h1>' +
+      '<p class="lede">Choose a device first and we’ll bring you straight back here.</p>' +
+      '<a href="catalog.html" class="action-btn" style="display:inline-block; width:auto; padding:14px 28px; text-decoration:none;">Browse devices</a>';
   }
 
-  /* Renders one plan. `bodyEl` / `pillEl` are passed in when a customer has
-   * more than one plan and each gets its own block; with one plan they default
-   * to the panel's own body and header pill, exactly as before. */
-  function renderPlan(sub, deviceName, bodyEl, pillEl){
-    var pill = pillEl || document.getElementById('plan-status');
-    var body = bodyEl || document.getElementById('plan-body');
+  async function renderPlan(){
+    var res = await Talaks.client.from('devices').select('*')
+      .eq('id', plan.device).maybeSingle();
+    var row = res.data;
+    if (!row) { noPlan(); return false; }
 
-    if (!sub) {
-      pill.style.display = 'none';
-      body.innerHTML = '<div class="empty">No plan yet. <a href="catalog.html">Browse devices</a> to start one.</div>';
-      return;
-    }
+    var storage = row.storages.find(function(s){ return s.gb === plan.storage; });
+    var colour = row.colours.find(function(c){ return c.name === plan.colour; });
+    if (!storage || !colour) { noPlan(); return false; }
 
-    var style = PLAN_STYLES[sub.status] || { pill:'working', label: sub.status };
-    pill.style.display = '';
-    pill.className = 'status-pill ' + style.pill;
-    pill.textContent = style.label;
+    // The explicit price for this tier and term — the same number the server
+    // reads when it records the order. If the tier doesn't offer this term
+    // (someone edited the URL), there is no plan to show.
+    var monthly = window.TalaksPricing.monthly(storage, plan.term);
+    if (monthly === null) { noPlan(); return false; }
+    var total = monthly * plan.term;
 
-    var rows =
-      '<div class="kv"><span>Device</span><b>' + escapeHtml(deviceName || sub.device_id) +
-        ' &middot; ' + escapeHtml(sub.storage_gb) + ' &middot; ' + escapeHtml(sub.colour) + '</b></div>' +
-      '<div class="kv"><span>Monthly</span><b>' + money(sub.monthly_amount_cents) + '/mo</b></div>' +
-      '<div class="kv"><span>Term</span><b>' + sub.term_months + ' months</b></div>' +
-      '';
+    var img = document.getElementById('plan-img');
+    img.src = colour.img;
+    img.alt = row.name;
+    img.onerror = function(){ this.onerror = null; this.src = PLACEHOLDER_IMG; };
 
-    if (sub.status === 'active') {
-      if (sub.current_period_end) rows += '<div class="kv"><span>Next payment</span><b>' + shortDate(sub.current_period_end) + '</b></div>';
-      if (sub.cancel_at) rows += '<div class="kv"><span>Term ends</span><b>' + shortDate(sub.cancel_at) + '</b></div>';
-      rows += '<p class="form-note">Your plan stops on its own at the end of the term — it will not roll on month to month. ' +
-              'We\u2019ll be in touch beforehand to arrange the return, an extension, or an upgrade.</p>';
-    } else if (sub.status === 'past_due') {
-      rows += '<p class="form-note" style="color:var(--danger);">A payment didn\u2019t go through. Update your card and we\u2019ll retry automatically — ' +
-              'email <a href="mailto:info@talaks.com.au" style="color:var(--brand-deep);">info@talaks.com.au</a> if you need a hand.</p>';
-    } else if (sub.status === 'pending_approval') {
-      rows += '<p class="form-note"><b>Nothing has been charged.</b> We check every order before taking a ' +
-              'payment, usually within one business day. We’ll email you either way — if we go ahead, ' +
-              'your first payment is taken then and your device ships.</p>' +
-              // A waiting customer should never need to email us to get out.
-              // Nothing has been charged, so this costs no one anything.
-              '<div class="form-error" data-cancel-error></div>' +
-              '<button class="signout-btn" data-cancel-btn style="margin-top:4px;">' +
-              'Cancel this order</button>';
-    } else if (sub.status === 'withdrawn') {
-      rows += '<p class="form-note">You cancelled this order, and nothing was charged. ' +
-              '<a href="catalog.html" style="color:var(--brand-deep);">Browse devices</a> ' +
-              'whenever you want to start again.</p>';
-    } else if (sub.status === 'declined') {
-      rows += '<p class="form-note">We weren’t able to go ahead with this order, and you haven’t been ' +
-              'charged anything. Email <a href="mailto:info@talaks.com.au" style="color:var(--brand-deep);">info@talaks.com.au</a> ' +
-              'if you’d like to know more or want to try again.</p>';
-    } else if (sub.status === 'pending') {
-      rows += '<p class="form-note">We\u2019re waiting on your first payment to clear. This page updates on its own once it does.</p>';
-    } else if (sub.status === 'completed') {
-      rows += '<p class="form-note">This term has finished. <a href="catalog.html" style="color:var(--brand-deep);">Start a new plan</a> whenever you\u2019re ready.</p>';
-    }
-
-    body.innerHTML = rows;
-
-    // Bound after the HTML is written, because the button only exists for a
-    // pending order and the panel is re-rendered whenever the plan changes.
-    // Scoped to this plan's own block — with two pending orders on screen
-    // there are two buttons, and each must cancel its own row.
-    var cancelBtn = body.querySelector('[data-cancel-btn]');
-    if (cancelBtn) {
-      cancelBtn.addEventListener('click', function () {
-        if (!confirm('Cancel this order?\n\nNothing has been charged, so there is no fee. ' +
-                     'You can order again any time.')) return;
-        cancelBtn.disabled = true;
-        cancelBtn.textContent = 'Cancelling…';
-        Talaks.client.rpc('cancel_my_application', { p_subscription_id: sub.id }).then(function (res) {
-          if (res.error) {
-            cancelBtn.disabled = false;
-            cancelBtn.textContent = 'Cancel this order';
-            var err = body.querySelector('[data-cancel-error]');
-            if (err) {
-              err.textContent = res.error.message || 'Could not cancel. Please try again.';
-              err.style.display = 'block';
-            }
-            return;
-          }
-          location.reload();
-        });
-      });
-    }
+    document.getElementById('plan-name').textContent = row.name;
+    document.getElementById('plan-detail').textContent = plan.storage + ' — ' + plan.colour;
+    document.getElementById('sum-device').textContent = row.name;
+    document.getElementById('sum-spec').textContent = plan.storage + ' / ' + plan.colour;
+    document.getElementById('sum-term').textContent = plan.term + ' months';
+    document.getElementById('sum-rrp').textContent = money(storage.rrp);
+    document.getElementById('sum-total').textContent = money(total);
+    document.getElementById('sum-monthly').textContent = money(monthly) + '/mo';
+    return true;
   }
 
-  /* One plan renders exactly as it always did. Two or more get a block each,
-   * newest first, with the device name and that plan's own status at the top —
-   * a second order must never be invisible behind the first, least of all one
-   * that is being charged. */
-  function renderPlans(subs, deviceNames){
-    var pill = document.getElementById('plan-status');
-    var body = document.getElementById('plan-body');
+  /* --- step state ------------------------------------------------------- */
 
-    if (!subs.length) { renderPlan(null); return; }
-
-    if (subs.length === 1) {
-      renderPlan(subs[0], deviceNames[subs[0].device_id]);
-      return;
-    }
-
-    pill.style.display = 'none';
-    body.innerHTML = '';
-
-    subs.forEach(function (sub) {
-      var block = document.createElement('div');
-      block.className = 'plan-block';
-
-      var head = document.createElement('div');
-      head.className = 'plan-block-head';
-
-      var name = document.createElement('b');
-      name.textContent = deviceNames[sub.device_id] || sub.device_id;
-
-      var blockPill = document.createElement('span');
-      blockPill.className = 'status-pill pending';
-
-      var blockBody = document.createElement('div');
-
-      head.appendChild(name);
-      head.appendChild(blockPill);
-      block.appendChild(head);
-      block.appendChild(blockBody);
-      body.appendChild(block);
-
-      renderPlan(sub, deviceNames[sub.device_id], blockBody, blockPill);
-    });
+  function setRail(step, state){
+    var el = document.getElementById('rail-' + step);
+    el.className = 'rail-step' + (state ? ' ' + state : '');
   }
 
-  var STATUS_STYLES = {
-    'Approved':    { pill:'done',    label:'Verified' },
-    'Declined':    { pill:'failed',  label:'Declined' },
-    'In Review':   { pill:'working', label:'In review' },
-    'In Progress': { pill:'working', label:'In progress' },
-    'Not Started': { pill:'pending', label:'Not started' },
-  };
-
-  function renderVerification(row){
-    var pill = document.getElementById('id-status');
-    var body = document.getElementById('id-body');
-
-    if (!row) {
-      pill.className = 'status-pill pending';
-      pill.textContent = 'Not started';
-      body.innerHTML = '<div class="empty">You’ll be asked to verify when you start a plan. '
-        + 'Nothing to do here yet.</div>';
-      return;
-    }
-
-    var style = STATUS_STYLES[row.status] || { pill:'working', label: row.status };
-    pill.className = 'status-pill ' + style.pill;
-    pill.textContent = style.label;
-
-    if (row.status === 'Approved') {
-      body.innerHTML = '<div class="kv"><span>Status</span><b>Verified — nothing further needed</b></div>';
-    } else if (row.status === 'Declined') {
-      body.innerHTML = '<div class="kv"><span>Status</span><b>Declined</b></div>'
-        + '<p class="form-note">If you think this is a mistake, email '
-        + '<a href="mailto:info@talaks.com.au" style="color:var(--brand-deep);">info@talaks.com.au</a> and we’ll take a look.</p>';
-    } else {
-      body.innerHTML = '<div class="kv"><span>Status</span><b>' + style.label + '</b></div>'
-        + '<p class="form-note">This usually finishes in a minute or two. Refresh to check again.</p>';
-    }
+  function unlockIdentity(){
+    document.getElementById('card-identity').classList.remove('locked');
+    document.getElementById('num-2').classList.remove('idle');
+    document.getElementById('btn-verify').disabled = false;
+    var pill = document.getElementById('didit-status');
+    if (pill.textContent === 'Locked') { pill.textContent = 'Not started'; }
+    setRail(2, 'active');
   }
 
-  async function saveDetails(){
-    show('pf-error', ''); show('pf-ok', '');
-    var btn = document.getElementById('pf-btn');
+  function markVerified(){
+    var pill = document.getElementById('didit-status');
+    pill.className = 'status-pill done';
+    pill.textContent = 'Verified';
+    var btn = document.getElementById('btn-verify');
+    btn.textContent = 'Identity verified';
+    btn.disabled = true;
+    setRail(2, 'done');
 
+    document.getElementById('card-payment').classList.remove('locked');
+    document.getElementById('num-3').classList.remove('idle');
+    document.getElementById('btn-pay').disabled = false;
+    var payPill = document.getElementById('pay-status');
+    payPill.className = 'status-pill pending';
+    payPill.textContent = 'Ready';
+    setRail(3, 'active');
+  }
+
+  /* --- step 1: delivery -------------------------------------------------- */
+
+  var PROFILE_FIELDS = ['full_name', 'phone', 'address_line', 'suburb', 'state', 'postcode'];
+
+  function profileComplete(p){
+    return !!p && PROFILE_FIELDS.every(function(f){ return p[f] && String(p[f]).trim(); });
+  }
+
+  function fillDeliveryForm(p){
+    if (!p) return;
+    document.getElementById('d-name').value     = p.full_name || '';
+    document.getElementById('d-phone').value    = p.phone || '';
+    document.getElementById('d-address').value  = p.address_line || '';
+    document.getElementById('d-suburb').value   = p.suburb || '';
+    document.getElementById('d-state').value    = p.state || '';
+    document.getElementById('d-postcode').value = p.postcode || '';
+  }
+
+  function collapseDelivery(p){
+    // Built with real DOM nodes, not innerHTML — these are customer-entered
+    // form values, and concatenating them into HTML would let something
+    // like a name containing "<img onerror=...>" execute as script.
+    var box = document.getElementById('recap-lines');
+    box.textContent = '';
+    var name = document.createElement('b');
+    name.textContent = p.full_name;
+    box.appendChild(name);
+    box.appendChild(document.createElement('br'));
+    box.appendChild(document.createTextNode(p.address_line));
+    box.appendChild(document.createElement('br'));
+    box.appendChild(document.createTextNode(p.suburb + ' ' + p.state + ' ' + p.postcode));
+    box.appendChild(document.createElement('br'));
+    box.appendChild(document.createTextNode(p.phone));
+    document.getElementById('delivery-form').style.display = 'none';
+    document.getElementById('delivery-recap').style.display = 'block';
+    var pill = document.getElementById('delivery-status');
+    pill.className = 'status-pill done';
+    pill.textContent = 'Saved';
+    setRail(1, 'done');
+  }
+
+  function editDelivery(){
+    document.getElementById('delivery-form').style.display = 'block';
+    document.getElementById('delivery-recap').style.display = 'none';
+    var pill = document.getElementById('delivery-status');
+    pill.className = 'status-pill working';
+    pill.textContent = 'Editing';
+    setRail(1, 'active');
+  }
+
+  async function saveDelivery(){
+    show('d-error', '');
     var fields = {
-      full_name:    document.getElementById('pf-name').value.trim(),
-      phone:        document.getElementById('pf-phone').value.trim(),
-      address_line: document.getElementById('pf-address').value.trim(),
-      suburb:       document.getElementById('pf-suburb').value.trim(),
-      state:        document.getElementById('pf-state').value,
-      postcode:     document.getElementById('pf-postcode').value.trim(),
+      full_name:    document.getElementById('d-name').value.trim(),
+      phone:        document.getElementById('d-phone').value.trim(),
+      address_line: document.getElementById('d-address').value.trim(),
+      suburb:       document.getElementById('d-suburb').value.trim(),
+      state:        document.getElementById('d-state').value,
+      postcode:     document.getElementById('d-postcode').value.trim(),
     };
 
-    if (!fields.full_name) { show('pf-error', 'Please enter your full name.'); return; }
-    if (fields.postcode && !/^\d{4}$/.test(fields.postcode)) {
-      show('pf-error', 'An Australian postcode is four digits.');
+    var missing = PROFILE_FIELDS.filter(function(f){ return !fields[f]; });
+    if (missing.length) { show('d-error', 'Please fill in every field — we need all of it to ship your device.'); return; }
+    if (!/^\d{4}$/.test(fields.postcode)) { show('d-error', 'An Australian postcode is four digits.'); return; }
+
+    var btn = document.getElementById('d-btn');
+    btn.disabled = true; btn.textContent = 'Saving…';
+    var { error } = await Talaks.saveProfile(user.id, fields);
+    btn.disabled = false; btn.textContent = 'Save and continue';
+
+    if (error) { show('d-error', error.message); return; }
+
+    collapseDelivery(fields);
+    unlockIdentity();
+  }
+
+  /* --- step 2: identity -------------------------------------------------- */
+
+  async function startVerification(){
+    show('v-error', '');
+    var session = await Talaks.getSession();
+    if (!session) { location.href = Talaks.signInUrl(Talaks.currentPageAsNext()); return; }
+
+    var btn = document.getElementById('btn-verify');
+    btn.disabled = true; btn.textContent = 'Starting…';
+    var pill = document.getElementById('didit-status');
+    pill.className = 'status-pill working';
+    pill.textContent = 'Starting…';
+
+    try {
+      var res = await fetch(Talaks.url + '/functions/v1/create-verification', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + session.access_token,
+          'apikey': Talaks.anonKey,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          callback: location.origin + location.pathname + location.search,
+        }),
+      });
+      var body = await res.json();
+
+      if (!res.ok) {
+        btn.disabled = false; btn.textContent = 'Start identity verification';
+        pill.className = 'status-pill pending'; pill.textContent = 'Not started';
+        show('v-error', body.error || 'Could not start verification. Please try again.');
+        return;
+      }
+
+      try { localStorage.setItem(VERIFY_KEY, body.session_id); } catch (e) {}
+      location.href = body.url;
+    } catch (e) {
+      btn.disabled = false; btn.textContent = 'Start identity verification';
+      pill.className = 'status-pill pending'; pill.textContent = 'Not started';
+      show('v-error', 'Could not reach the server. Check your connection and try again.');
+    }
+  }
+
+  var STATUS_LABELS = {
+    'Approved': 'Verified', 'Declined': 'Declined',
+    'In Review': 'In review', 'In Progress': 'In progress', 'Not Started': 'Not started',
+  };
+
+  function pollVerification(sessionId){
+    var pill = document.getElementById('didit-status');
+    pill.className = 'status-pill working';
+    pill.textContent = 'Checking…';
+    var btn = document.getElementById('btn-verify');
+    btn.disabled = true; btn.textContent = 'Checking your verification…';
+
+    var tries = 0;
+    pollHandle = setInterval(async function(){
+      tries++;
+      var res = await Talaks.client.from('verifications')
+        .select('status').eq('session_id', sessionId).maybeSingle();
+
+      if (res.data && res.data.status) {
+        var status = res.data.status;
+        if (status === 'Approved') {
+          clearInterval(pollHandle);
+          try { localStorage.removeItem(VERIFY_KEY); } catch (e) {}
+          markVerified();
+          return;
+        }
+        if (status === 'Declined') {
+          clearInterval(pollHandle);
+          try { localStorage.removeItem(VERIFY_KEY); } catch (e) {}
+          pill.className = 'status-pill failed';
+          pill.textContent = 'Declined';
+          btn.textContent = 'Verification declined';
+          show('v-error', 'Your verification was declined. Email info@talaks.com.au if you think that’s wrong.');
+          return;
+        }
+        pill.textContent = STATUS_LABELS[status] || status;
+      }
+
+      if (tries > 60) { // ~3 minutes
+        clearInterval(pollHandle);
+        pill.className = 'status-pill pending';
+        pill.textContent = 'Still processing';
+        btn.disabled = false;
+        btn.textContent = 'Start identity verification';
+        show('v-error', 'This is taking longer than usual. Refresh in a minute to check again.');
+      }
+    }, 3000);
+  }
+
+  /* --- step 3: payment ---------------------------------------------------- */
+
+  async function startPayment(){
+    show('p-error', '');
+    var session = await Talaks.getSession();
+    if (!session) { location.href = Talaks.signInUrl(Talaks.currentPageAsNext()); return; }
+
+    var btn = document.getElementById('btn-pay');
+    btn.disabled = true; btn.textContent = 'Opening secure checkout…';
+
+    try {
+      // Only the plan choice is sent. The price is computed server-side from
+      // the devices table — an amount from this page would be trivial to forge.
+      var res = await fetch(Talaks.url + '/functions/v1/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + session.access_token,
+          'apikey': Talaks.anonKey,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          device: plan.device, storage: plan.storage,
+          colour: plan.colour, term: plan.term,
+        }),
+      });
+      var body = await res.json();
+
+      if (!res.ok) {
+        btn.disabled = false; btn.textContent = 'Continue to card details';
+        show('p-error', body.error || 'Could not submit your order. Please try again.');
+        return;
+      }
+      location.href = body.url;
+    } catch (e) {
+      btn.disabled = false; btn.textContent = 'Continue to card details';
+      show('p-error', 'Could not reach the server. Check your connection and try again.');
+    }
+  }
+
+  /* The order is in, and nothing has been charged. What we say
+   * depends on which state the row is actually in — "pending_approval" and
+   * "active" are not the same thing, and only one of them means a card has
+   * been charged, so they can't share one message. */
+  function markApplied(status){
+    var pill = document.getElementById('pay-status');
+    pill.className = 'status-pill done';
+    var btn = document.getElementById('btn-pay');
+    btn.disabled = true;
+    setRail(3, 'done');
+    var note = document.getElementById('pay-note');
+
+    if (status === 'active') {
+      pill.textContent = 'Active';
+      btn.textContent = 'Subscription active';
+      note.innerHTML =
+        '<b style="color:var(--teal);">You\u2019re approved \u2014 your first payment has been taken.</b> ' +
+        'Your device ships next. You can follow it in <a href="account.html" style="color:var(--brand-deep);">your account</a>.';
+    } else {
+      pill.textContent = 'Submitted';
+      btn.textContent = 'Order submitted';
+      note.innerHTML =
+        '<b style="color:var(--teal);">Order received \u2014 nothing has been charged yet.</b> ' +
+        'We review every order before taking a payment, usually within one business day. ' +
+        'We\u2019ll email you either way; if we go ahead, your first payment is taken then and the ' +
+        'device ships. You can follow it in <a href="account.html" style="color:var(--brand-deep);">your account</a>.';
+    }
+  }
+
+  /* Back from Stripe. The redirect only means the form was submitted; the card
+   * details are recorded by a webhook a moment later, and the actual charge
+   * (or decision to hold off) happens after our own review — so we poll our
+   * own row rather than trusting the URL. */
+  function pollApplication(sessionId){
+    var pill = document.getElementById('pay-status');
+    pill.className = 'status-pill working';
+    pill.textContent = 'Submitting…';
+    var btn = document.getElementById('btn-pay');
+    btn.disabled = true; btn.textContent = 'Submitting your order…';
+
+    var tries = 0;
+    var handle = setInterval(async function(){
+      tries++;
+      var q = Talaks.client.from('subscriptions').select('status');
+      q = sessionId ? q.eq('checkout_session_id', sessionId) : q.eq('user_id', user.id);
+      var res = await q.order('created_at', { ascending: false }).limit(1).maybeSingle();
+
+      var st = res.data && res.data.status;
+      if (st === 'pending_approval' || st === 'active') {
+        clearInterval(handle);
+        try { sessionStorage.removeItem(PLAN_KEY); } catch (e) {}
+        markApplied(st);
+        return;
+      }
+      if (tries > 20) {
+        clearInterval(handle);
+        pill.className = 'status-pill working';
+        pill.textContent = 'Unconfirmed';
+        // We genuinely don't know the outcome at this point — no row has come
+        // through yet, so we say that rather than asserting nothing was
+        // charged, which we can't actually confirm from here.
+        document.getElementById('pay-note').textContent =
+          'Your order was submitted, but we can\u2019t yet confirm its status here — it can take ' +
+          'a minute to record on our side. Refresh your account page in a moment to see the latest status, ' +
+          'and we\u2019ll email you either way. If you\u2019re ever unsure whether you\u2019ve been charged, ' +
+          'check your account page or contact us at info@talaks.com.au.';
+      }
+    }, 3000);
+  }
+
+  /* --- boot -------------------------------------------------------------- */
+
+  (async function init(){
+    // Unauthenticated visitors go to sign-in and come straight back here,
+    // device selection and all.
+    var session = await Talaks.requireAuth();
+    if (!session) return;
+    user = session.user;
+
+    plan = resolvePlan();
+    if (!plan || !plan.device) { noPlan(); return; }
+
+    var ok = await renderPlan();
+    if (!ok) return;
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('checkout').style.display = 'block';
+
+    var results = await Promise.all([
+      Talaks.getProfile(user.id),
+      Talaks.latestVerification(user.id),
+    ]);
+    var profile = results[0];
+    var verification = results[1];
+
+    fillDeliveryForm(profile);
+    if (!profile && user.user_metadata && user.user_metadata.full_name) {
+      document.getElementById('d-name').value = user.user_metadata.full_name;
+    }
+
+    if (profileComplete(profile)) {
+      collapseDelivery(profile);
+      unlockIdentity();
+    }
+
+    // Already verified from an earlier attempt — don't make them do it twice.
+    if (verification && verification.status === 'Approved') {
+      unlockIdentity();
+      markVerified();
+      try { localStorage.removeItem(VERIFY_KEY); } catch (e) {}
+
+      // Back from Stripe. The subscription only truly starts when the webhook
+      // sees invoice.paid, so poll our own row rather than trusting the URL.
+      var q = new URLSearchParams(location.search);
+      if (q.get('applied') === '1') { pollApplication(q.get('session_id')); }
+      else if (q.get('payment') === 'cancelled') {
+        show('p-error', 'Cancelled — no card was saved and nothing has been charged. You can pick it up again whenever you\u2019re ready.');
+      }
       return;
     }
 
-    btn.disabled = true; btn.textContent = 'Saving…';
-    var { error } = await Talaks.saveProfile(user.id, fields);
-    btn.disabled = false; btn.textContent = 'Save details';
-
-    if (error) { show('pf-error', error.message); return; }
-    show('pf-ok', 'Saved.');
-  }
-
-  (async function init(){
-    var session = await Talaks.requireAuth();
-    if (!session) return; // requireAuth already redirected
-    user = session.user;
-
-    document.getElementById('who').textContent = user.email;
-    document.getElementById('sec-email').textContent = user.email;
-
-    var [profile, verification, subscriptions] = await Promise.all([
-      Talaks.getProfile(user.id),
-      Talaks.latestVerification(user.id),
-      Talaks.allSubscriptions(user.id),
-    ]);
-
-    // One query for every device across every plan, rather than one per plan.
-    var deviceNames = {};
-    var deviceIds = subscriptions
-      .map(function (s) { return s.device_id; })
-      .filter(function (id, i, all) { return id && all.indexOf(id) === i; });
-
-    if (deviceIds.length) {
-      var devs = await Talaks.client.from('devices').select('id, name').in('id', deviceIds);
-      (devs.data || []).forEach(function (d) { deviceNames[d.id] = d.name; });
+    // Mid-flight verification: either we just came back from Didit, or the
+    // page was reloaded while one was in progress.
+    var pending = null;
+    try { pending = localStorage.getItem(VERIFY_KEY); } catch (e) {}
+    if (!pending && verification && verification.status !== 'Declined') {
+      pending = verification.session_id;
     }
-
-    renderPlans(subscriptions, deviceNames);
-
-    if (profile) {
-      document.getElementById('pf-name').value     = profile.full_name || '';
-      document.getElementById('pf-phone').value    = profile.phone || '';
-      document.getElementById('pf-address').value  = profile.address_line || '';
-      document.getElementById('pf-suburb').value   = profile.suburb || '';
-      document.getElementById('pf-state').value    = profile.state || '';
-      document.getElementById('pf-postcode').value = profile.postcode || '';
-    } else if (user.user_metadata && user.user_metadata.full_name) {
-      // Fall back to the name captured at sign-up before a profile row exists.
-      document.getElementById('pf-name').value = user.user_metadata.full_name;
+    if (pending && profileComplete(profile)) {
+      unlockIdentity();
+      pollVerification(pending);
     }
-
-    renderVerification(verification);
-
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('dash').style.display = 'block';
   })();
 </script>
 
