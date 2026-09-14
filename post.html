@@ -11,6 +11,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,380;9..144,440;9..144,560&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="assets/auth.js"></script>
 <style>
   :root{
     --paper:#FFFFFF; --paper-warm:#FBF8F3; --peach:#FFEEE3;
@@ -106,10 +107,9 @@
 </footer>
 
 <script>
-  const supabaseClient = supabase.createClient(
-    'https://asajwviusixmnoolawnb.supabase.co',
-    'sb_publishable__KTvqClMNFPO2ZHkueUJmA_101Fl1_D'
-  );
+  // Reuses the one client assets/auth.js already created, rather than
+  // opening a second independent Supabase/GoTrue client on the same page.
+  const supabaseClient = Talaks.client;
 
   function escapeHtml(s){
     return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -211,6 +211,5 @@
   }
 </script>
 
-<script src="assets/auth.js"></script>
 </body>
 </html>

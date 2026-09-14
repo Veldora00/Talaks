@@ -58,7 +58,9 @@
   .thumb{
     width:64px; height:64px; border:1px solid var(--line); border-radius:10px; background:var(--paper-warm);
     cursor:pointer; padding:8px; display:flex; align-items:center; justify-content:center;
+    font:inherit;
   }
+  .thumb:focus-visible, .swatch:focus-visible{ outline:2px solid var(--brand); outline-offset:2px; }
   .thumb.active{ border-color:var(--brand); }
   .thumb img{ width:100%; height:100%; object-fit:contain; }
 
@@ -329,8 +331,46 @@
       }
       state.deviceId = requestedDevice;
 
+      // Pick up storage/colour/term from the URL too, if a valid value is
+      // there — so a refresh or a shared link lands on the exact plan that
+      // was being viewed, not just the right device on its default tier.
+      const device = getDevice();
+      const requestedStorage = urlParams.get('storage');
+      if (requestedStorage) {
+        const idx = device.storages.findIndex(s => String(s.gb) === requestedStorage);
+        if (idx !== -1) state.storageIdx = idx;
+      }
+      const requestedColour = urlParams.get('colour');
+      if (requestedColour) {
+        const idx = device.colours.findIndex(c => c.name === requestedColour);
+        if (idx !== -1) state.colourIdx = idx;
+      }
+      const requestedTerm = parseInt(urlParams.get('term'), 10);
+      if (!Number.isNaN(requestedTerm)) state.termIdx = requestedTerm;
+
       render();
     });
+
+  /* Keep the address bar in sync with everything currently on screen — device,
+   * storage, colour and term — not just the device. A refresh, a shared link,
+   * or the browser back button should all land on the exact plan being
+   * viewed, not just the right device with the wrong tier. */
+  function syncUrl(device, storage, colour, months){
+    const url = new URL(window.location.href);
+    url.searchParams.set('device', device.id);
+    url.searchParams.set('storage', storage.gb);
+    url.searchParams.set('colour', colour.name);
+    url.searchParams.set('term', months);
+    history.replaceState(null, '', url);
+
+    // The nav's sign-in chip captures "come back here" at page load, before
+    // any of the above existed — refresh it so signing in returns to the
+    // plan actually being viewed, not the one the page first loaded with.
+    const navLink = document.querySelector('.nav-account');
+    if (navLink && !navLink.classList.contains('signed-in') && window.Talaks) {
+      navLink.href = Talaks.signInUrl(Talaks.currentPageAsNext());
+    }
+  }
 
   function render(){
     const device = getDevice();
@@ -347,6 +387,7 @@
     const total = monthly * months;
     const rrp = Number(storage.rrp);
     const onSale = false;
+    syncUrl(device, storage, colour, months);
 
     document.getElementById('crumb-brand').textContent = device.brand;
     document.getElementById('crumb-brand-link').href = 'catalog.html?brand=' + encodeURIComponent(device.brand);
@@ -397,9 +438,12 @@
     const thumbrail = document.getElementById('thumbrail');
     thumbrail.innerHTML = '';
     device.colours.forEach((c, i) => {
-      const t = document.createElement('div');
+      const t = document.createElement('button');
+      t.type = 'button';
       t.className = 'thumb' + (i === state.colourIdx ? ' active' : '');
-      t.innerHTML = '<img src="' + c.img + '" alt="' + c.name + '" onerror="this.onerror=null;this.src=\'' + PLACEHOLDER_IMG + '\'">';
+      t.setAttribute('aria-label', c.name);
+      t.setAttribute('aria-pressed', i === state.colourIdx ? 'true' : 'false');
+      t.innerHTML = '<img src="' + c.img + '" alt="" onerror="this.onerror=null;this.src=\'' + PLACEHOLDER_IMG + '\'">';
       t.onclick = () => { state.colourIdx = i; render(); };
       thumbrail.appendChild(t);
     });
@@ -417,9 +461,12 @@
     const colourRow = document.getElementById('colour-row');
     colourRow.innerHTML = '';
     device.colours.forEach((c, i) => {
-      const s = document.createElement('div');
+      const s = document.createElement('button');
+      s.type = 'button';
       s.className = 'swatch' + (i === state.colourIdx ? ' active' : '');
-      s.innerHTML = '<img src="' + c.img + '" alt="' + c.name + '" onerror="this.onerror=null;this.src=\'' + PLACEHOLDER_IMG + '\'">';
+      s.setAttribute('aria-label', c.name);
+      s.setAttribute('aria-pressed', i === state.colourIdx ? 'true' : 'false');
+      s.innerHTML = '<img src="' + c.img + '" alt="" onerror="this.onerror=null;this.src=\'' + PLACEHOLDER_IMG + '\'">';
       s.onclick = () => { state.colourIdx = i; render(); };
       colourRow.appendChild(s);
     });

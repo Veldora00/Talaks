@@ -40,12 +40,22 @@ window.Talaks = (function () {
   function safeNext(raw) {
     if (!raw) return null;
     var value = String(raw);
-    // Reject absolute URLs, protocol-relative URLs and anything with a scheme.
-    if (/^[a-z][a-z0-9+.-]*:/i.test(value)) return null;
-    if (value.indexOf('//') === 0) return null;
-    if (value.charAt(0) === '/') return null; // keep everything page-relative
     if (value.indexOf('..') !== -1) return null;
-    return value;
+    try {
+      // Resolve against our own origin rather than pattern-matching the raw
+      // string — browsers strip leading/trailing whitespace and control
+      // characters, and normalise backslashes to forward slashes, before a
+      // regex ever sees the value, so a blocklist regex can be bypassed by
+      // strings that still resolve to somewhere else entirely. Resolving via
+      // the URL constructor and comparing the final origin sidesteps all of
+      // that: whatever the input looked like, it only passes if it actually
+      // lands back on this site.
+      var resolved = new URL(value, window.location.origin);
+      if (resolved.origin !== window.location.origin) return null;
+      return resolved.pathname.replace(/^\//, '') + resolved.search + resolved.hash;
+    } catch (e) {
+      return null;
+    }
   }
 
   function currentPageAsNext() {

@@ -524,28 +524,39 @@
     }
   }
 
-  /* The order is in, and nothing has been charged. Say that plainly — someone
-   * who has just typed a card number assumes they have been billed unless
-   * told otherwise, and a surprise charge later is far worse than none now. */
-  function markApplied(){
+  /* The order is in, and nothing has been charged. What we say
+   * depends on which state the row is actually in — "pending_approval" and
+   * "active" are not the same thing, and only one of them means a card has
+   * been charged, so they can't share one message. */
+  function markApplied(status){
     var pill = document.getElementById('pay-status');
     pill.className = 'status-pill done';
-    pill.textContent = 'Submitted';
     var btn = document.getElementById('btn-pay');
-    btn.textContent = 'Order submitted';
     btn.disabled = true;
     setRail(3, 'done');
-    document.getElementById('pay-note').innerHTML =
-      '<b style="color:var(--teal);">Order received \u2014 nothing has been charged.</b> ' +
-      'We review every order before taking a payment, usually within one business day. ' +
-      'We\u2019ll email you either way; if we go ahead, your first payment is taken then and the ' +
-      'device ships. You can follow it in <a href="account.html" style="color:var(--brand-deep);">your account</a>.';
+    var note = document.getElementById('pay-note');
+
+    if (status === 'active') {
+      pill.textContent = 'Active';
+      btn.textContent = 'Subscription active';
+      note.innerHTML =
+        '<b style="color:var(--teal);">You\u2019re approved \u2014 your first payment has been taken.</b> ' +
+        'Your device ships next. You can follow it in <a href="account.html" style="color:var(--brand-deep);">your account</a>.';
+    } else {
+      pill.textContent = 'Submitted';
+      btn.textContent = 'Order submitted';
+      note.innerHTML =
+        '<b style="color:var(--teal);">Order received \u2014 nothing has been charged yet.</b> ' +
+        'We review every order before taking a payment, usually within one business day. ' +
+        'We\u2019ll email you either way; if we go ahead, your first payment is taken then and the ' +
+        'device ships. You can follow it in <a href="account.html" style="color:var(--brand-deep);">your account</a>.';
+    }
   }
 
   /* Back from Stripe. The redirect only means the form was submitted; the card
-   * is recorded by a webhook a moment later. Poll our own row rather than
-   * trusting the URL — same as before. What changed is which state we wait
-   * for, and that none of it is a payment. */
+   * details are recorded by a webhook a moment later, and the actual charge
+   * (or decision to hold off) happens after our own review — so we poll our
+   * own row rather than trusting the URL. */
   function pollApplication(sessionId){
     var pill = document.getElementById('pay-status');
     pill.className = 'status-pill working';
@@ -564,17 +575,21 @@
       if (st === 'pending_approval' || st === 'active') {
         clearInterval(handle);
         try { sessionStorage.removeItem(PLAN_KEY); } catch (e) {}
-        markApplied();
+        markApplied(st);
         return;
       }
       if (tries > 20) {
         clearInterval(handle);
         pill.className = 'status-pill working';
         pill.textContent = 'Received';
+        // We genuinely don't know the outcome at this point — no row has come
+        // through yet, so we say that rather than asserting nothing was
+        // charged, which we can't actually confirm from here.
         document.getElementById('pay-note').textContent =
-          'Your order is in and nothing has been charged. It\u2019s still being recorded on our ' +
-          'side, which can take a minute. Your account page will update automatically, and ' +
-          'we\u2019ll email you once we\u2019ve reviewed it.';
+          'Your order was submitted, but we can\u2019t yet confirm its status here — it can take ' +
+          'a minute to record on our side. Refresh your account page in a moment to see the latest status, ' +
+          'and we\u2019ll email you either way. If you\u2019re ever unsure whether you\u2019ve been charged, ' +
+          'check your account page or contact us at info@talaks.com.au.';
       }
     }, 3000);
   }

@@ -212,6 +212,9 @@
     canceled:  { pill:'pending', label:'Ended' },
   };
 
+  function escapeHtml(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
   function money(cents){ return '$' + Math.round(cents / 100).toLocaleString('en-AU'); }
   function shortDate(iso){
     if (!iso) return null;
@@ -234,8 +237,8 @@
     pill.textContent = style.label;
 
     var rows =
-      '<div class="kv"><span>Device</span><b>' + (deviceName || sub.device_id) +
-        ' &middot; ' + sub.storage_gb + ' &middot; ' + sub.colour + '</b></div>' +
+      '<div class="kv"><span>Device</span><b>' + escapeHtml(deviceName || sub.device_id) +
+        ' &middot; ' + escapeHtml(sub.storage_gb) + ' &middot; ' + escapeHtml(sub.colour) + '</b></div>' +
       '<div class="kv"><span>Monthly</span><b>' + money(sub.monthly_amount_cents) + '/mo</b></div>' +
       '<div class="kv"><span>Term</span><b>' + sub.term_months + ' months</b></div>' +
       '';
