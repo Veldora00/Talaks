@@ -40,23 +40,28 @@ window.Talaks = (function () {
   function safeNext(raw) {
     if (!raw) return null;
     var value = String(raw);
-    // A browser strips leading/trailing whitespace and control characters
-    // before it parses a URL, so " https://evil.com" would slip past a check
-    // that only looks at character 0 — trim the same way first.
-    value = value.replace(/^[\s\x00-\x1f]+|[\s\x00-\x1f]+$/g, '');
-    if (!value) return null;
-    // A backslash is treated as a forward slash in a URL by every major
-    // browser, so "\evil.com" or "\/evil.com" becomes "//evil.com" — a
-    // protocol-relative link off-site — even though it doesn't start with
-    // "//" as written. Reject any backslash outright rather than trying to
-    // enumerate every way it can be combined with slashes.
-    if (value.indexOf('\\') !== -1) return null;
-    // Reject absolute URLs, protocol-relative URLs and anything with a scheme.
-    if (/^[a-z][a-z0-9+.-]*:/i.test(value)) return null;
-    if (value.indexOf('//') === 0) return null;
-    if (value.charAt(0) === '/') return null; // keep everything page-relative
     if (value.indexOf('..') !== -1) return null;
-    return value;
+    try {
+      // Resolve against our own origin rather than pattern-matching the raw
+      // string — browsers strip leading/trailing whitespace and control
+      // characters, and normalise backslashes to forward slashes, before a
+      // regex ever sees the value, so a blocklist regex can be bypassed by
+      // strings that still resolve to somewhere else entirely. Resolving via
+      // the URL constructor and comparing the final origin sidesteps all of
+      // that: whatever the input looked like, it only passes if it actually
+      // lands back on this site.
+      var resolved = new URL(value, window.location.origin);
+      if (resolved.origin !== window.location.origin) return null;
+      // Hand back the exact URL whose origin we just checked. Rebuilding a
+      // relative string from the parts re-opens the hole the origin check
+      // closed: "/https://evil.com" and "/javascript:alert(1)" both resolve
+      // to harmless paths on this origin, but stripping the leading slash
+      // turns them back into an absolute URL and a javascript: URL, and
+      // "//evil.com" stays protocol-relative even with the slash kept.
+      return resolved.href;
+    } catch (e) {
+      return null;
+    }
   }
 
   function currentPageAsNext() {
@@ -158,11 +163,31 @@ window.Talaks = (function () {
       });
   }
 
+  var SUBSCRIPTION_FIELDS =
+    'id, device_id, storage_gb, colour, term_months, monthly_amount_cents, status, ' +
+    'current_period_end, cancel_at, created_at';
+
+  /* Every plan this customer has, newest first.
+   *
+   * Nothing stops someone taking a second plan — a phone for a partner, an
+   * upgrade started before the old term ends — and reading one row would
+   * quietly hide the others, including a second order they are being charged
+   * for. The account page renders whatever comes back. */
+  function allSubscriptions(userId) {
+    if (!ready) return Promise.resolve([]);
+    return client.from('subscriptions')
+      .select(SUBSCRIPTION_FIELDS)
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(25)
+      .then(function (res) { return res.data || []; });
+  }
+
   /* Most recent plan, whatever its state. */
   function latestSubscription(userId) {
     if (!ready) return offline();
     return client.from('subscriptions')
-      .select('device_id, storage_gb, colour, term_months, monthly_amount_cents, status, current_period_end, cancel_at, created_at')
+      .select(SUBSCRIPTION_FIELDS)
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(1)
@@ -239,5 +264,6 @@ window.Talaks = (function () {
     saveProfile: saveProfile,
     latestVerification: latestVerification,
     latestSubscription: latestSubscription,
+    allSubscriptions: allSubscriptions,
   };
 })();
