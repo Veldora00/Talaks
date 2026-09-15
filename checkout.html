@@ -6,52 +6,180 @@
 <link rel="icon" type="image/png" sizes="512x512" href="assets/favicon-512.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Talaks — Confirm your plan</title>
+<title>iPhone &amp; Galaxy Plans — Pay Monthly, No Credit Check | Talaks</title>
+<meta name="description" content="Get a brand-new iPhone or Galaxy on a monthly plan. No credit check, no upfront cost, free upgrades and free delivery Australia-wide."
+      id="meta-desc">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,380;9..144,440;9..144,560&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/talaks.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="assets/auth.js"></script>
+<script src="assets/pricing.js"></script>
 <style>
-  /* Checkout is a stepper: a progress rail across the top, then one open
-     panel at a time. Distinct from the account dashboard and the sign-in card. */
-  .checkout{ max-width:820px; margin:0 auto; padding:0 28px 90px; }
-  @media (max-width:640px){ .checkout{ padding:0 20px 70px; } }
-
-  .rail{ display:flex; align-items:center; gap:8px; margin:36px 0 30px; }
-  .rail-step{ display:flex; align-items:center; gap:9px; font-size:13px; color:var(--ink-faint); white-space:nowrap; }
-  .rail-step .dot{
-    width:22px; height:22px; border-radius:50%; border:1.5px solid var(--line-strong);
-    display:flex; align-items:center; justify-content:center; font-size:11.5px; font-weight:700;
-    color:var(--ink-faint); background:var(--paper); flex:none;
+  :root{
+    --paper:#FFFFFF; --paper-warm:#FBF8F3; --peach:#FFEEE3; --mint:#E7F6EF;
+    --ink:#161A20; --ink-dim:#5B6472; --ink-faint:#8B93A1;
+    --line: rgba(22,26,32,0.10); --line-strong: rgba(22,26,32,0.18);
+    --brand:#FF5A36; --brand-deep:#E8471F; --brand-ink:#FFFFFF; --teal:#1E9E82;
+    --serif: 'Fraunces', Georgia, serif;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   }
-  .rail-step.active{ color:var(--ink); font-weight:600; }
-  .rail-step.active .dot{ border-color:var(--brand); background:var(--brand); color:var(--brand-ink); }
-  .rail-step.done{ color:var(--teal); }
-  .rail-step.done .dot{ border-color:var(--teal); background:var(--teal); color:var(--brand-ink); }
-  .rail-line{ flex:1; height:1.5px; background:var(--line-strong); min-width:12px; }
-  @media (max-width:600px){ .rail-step span.label{ display:none; } .rail-line{ min-width:0; } }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink); font-family:var(--sans);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1160px; margin:0 auto; padding:0 28px;}
+  @media (max-width:640px){ .wrap{padding:0 20px;} }
 
-  .plan-row{ display:flex; gap:18px; align-items:center; }
-  .plan-row img{ width:70px; height:90px; object-fit:contain; background:var(--paper); padding:8px; border:1px solid var(--line); border-radius:10px; }
-  .plan-details .pn{ font-size:17px; font-weight:600; margin-bottom:4px; }
-  .plan-details .pd{ font-size:13.5px; color:var(--ink-dim); }
+  nav{
+    position:sticky; top:0; z-index:50;
+    background:rgba(255,255,255,0.92); backdrop-filter: blur(8px);
+    border-bottom:1px solid var(--line);
+  }
+  nav .row{ display:flex; align-items:center; justify-content:space-between; padding:18px 0; }
+  .brand{ font-family:var(--serif); font-size:22px; font-weight:640; text-decoration:none; color:var(--ink); }
+  .brand:visited, .brand:link, .brand:hover{ color:var(--ink); }
+  .brand span{color:var(--brand);}
+  .navlinks{display:flex; gap:32px; font-size:15px;}
+  .navlinks a{color:var(--ink-dim); text-decoration:none;}
+  .navlinks a:hover{color:var(--ink);}
+  @media (max-width:760px){ .navlinks{display:none;} }
 
-  .summary-row{ display:flex; justify-content:space-between; padding:9px 0; font-size:14px; color:var(--ink-dim); }
+  .crumb{ padding:22px 0 0; font-size:13px; color:var(--ink-faint); }
+  .crumb a{color:inherit; text-decoration:none;}
+  .crumb a:hover{color:var(--ink);}
+
+  .product{ padding:36px 0 100px; display:grid; grid-template-columns:64px 1fr 1fr; gap:40px; align-items:start; }
+  @media (max-width:900px){ .product{grid-template-columns:1fr; } }
+
+  .thumbrail{ display:flex; flex-direction:column; gap:10px; }
+  @media (max-width:900px){ .thumbrail{ flex-direction:row; order:2; } }
+  .thumb{
+    width:64px; height:64px; border:1px solid var(--line); border-radius:10px; background:var(--paper-warm);
+    cursor:pointer; padding:8px; display:flex; align-items:center; justify-content:center;
+    font:inherit;
+  }
+  .thumb:focus-visible, .swatch:focus-visible{ outline:2px solid var(--brand); outline-offset:2px; }
+  .thumb.active{ border-color:var(--brand); }
+  .thumb img{ width:100%; height:100%; object-fit:contain; }
+
+  .stage{
+    order:0;
+    background:var(--paper-warm); border:1px solid var(--line); border-radius:20px;
+    min-height:520px; display:flex; align-items:center; justify-content:center; padding:40px;
+    position:relative;
+  }
+  @media (max-width:900px){ .stage{order:1; min-height:380px;} }
+  .stage img{ max-width:100%; max-height:460px; object-fit:contain; }
+  .stage-badge{
+    position:absolute; top:20px; left:20px; font-size:12px; letter-spacing:0.3px;
+    color:var(--brand-ink); background:var(--teal); padding:5px 12px; border-radius:999px;
+  }
+
+  .info{ order:2; }
+  @media (max-width:900px){ .info{order:3;} }
+  .rating{ display:flex; align-items:center; gap:10px; font-size:13px; color:var(--ink-dim); margin-bottom:18px; }
+  .stars{ color:var(--brand); letter-spacing:1px; }
+
+  h1{ font-family:var(--serif); font-weight:440; font-size:36px; margin:0 0 8px; letter-spacing:-0.01em; }
+  .subtitle{ font-size:14.5px; color:var(--ink-dim); margin:0 0 28px; max-width:46ch; line-height:1.6; }
+
+  .field{ margin-bottom:26px; }
+  .field-label{ font-size:13px; color:var(--ink-dim); margin-bottom:10px; display:flex; justify-content:space-between; }
+  .field-label b{ color:var(--brand); font-weight:600; }
+
+  .pillrow{ display:flex; gap:10px; flex-wrap:wrap; }
+  .pill{
+    border:1px solid var(--line-strong); border-radius:999px; background:var(--paper); color:var(--ink);
+    padding:11px 18px; font-size:14px; cursor:pointer; font-family:inherit;
+  }
+  .pill:hover{ border-color:var(--ink-faint); }
+  .pill.active{ border-color:var(--brand); background:var(--peach); color:var(--brand-deep); }
+
+  .swatchrow{ display:flex; gap:10px; flex-wrap:wrap; }
+  .swatch{
+    width:56px; height:56px; border:1px solid var(--line); border-radius:12px; background:var(--paper-warm);
+    cursor:pointer; padding:6px; display:flex; align-items:center; justify-content:center;
+  }
+  .swatch img{ width:100%; height:100%; object-fit:contain; }
+  .swatch.active{ border-color:var(--brand); }
+
+  .term-pill{
+    border:1px solid var(--line-strong); border-radius:14px; background:var(--paper); color:var(--ink);
+    padding:14px 18px; font-size:14px; cursor:pointer; font-family:inherit;
+    display:flex; justify-content:space-between; align-items:center; width:100%;
+    margin-bottom:8px;
+  }
+  .term-pill .t{ display:flex; align-items:center; gap:10px; }
+  .term-pill .tag{ font-size:11px; color:var(--brand-ink); background:var(--teal); padding:3px 8px; border-radius:999px; }
+  .term-pill .price{ font-family:var(--serif); font-size:17px; }
+  .term-pill .price small{ font-size:12px; color:var(--ink-faint); font-family:var(--sans); }
+  .term-pill .price s{ font-size:14px; color:var(--ink-faint); margin-right:7px; font-weight:400; }
+
+  .stage-save{
+    position:absolute; top:20px; right:20px; font-size:12px; font-weight:600;
+    color:var(--brand-ink); background:var(--brand); padding:5px 12px; border-radius:999px;
+  }
+  .summary-row s{ color:var(--ink-faint); margin-right:7px; font-weight:400; }
+  .was-line{ font-size:13.5px; color:var(--ink-faint); margin:0 0 18px; }
+  .was-line s{ margin-right:8px; }
+  .was-line b{ color:var(--brand-deep); font-weight:600; }
+  .term-pill.active{ border-color:var(--brand); background:var(--peach); }
+  .term-pill.unavailable{ opacity:.5; cursor:default; border-style:dashed; }
+  .term-pill.unavailable .price small{ font-size:12px; color:var(--ink-faint); }
+  .term-pill.active .price{ color:var(--brand-deep); }
+
+  /* The repairs note. Not an upsell and not a product - just a plain
+     statement of who pays for what, so it sits as a quiet inclusion. */
+  .included{
+    display:flex; align-items:flex-start; gap:12px; border:1px solid rgba(30,158,130,0.3);
+    background:var(--mint); border-radius:14px; padding:14px 16px; margin-bottom:26px;
+  }
+  .included-mark{
+    width:20px; height:20px; border-radius:50%; background:var(--teal); color:var(--brand-ink);
+    font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; flex:none; margin-top:1px;
+  }
+  .included b{ display:block; font-size:13.5px; color:var(--ink); margin-bottom:3px; }
+  .included span{ font-size:12.5px; color:var(--ink-dim); line-height:1.55; }
+  .included a{ color:var(--brand-deep); }
+
+  .summary{
+    border:1px solid var(--line); border-radius:14px; padding:20px; margin:26px 0 20px; font-size:13.5px; background:var(--paper-warm);
+  }
+  .summary-row{ display:flex; justify-content:space-between; padding:8px 0; color:var(--ink-dim); }
   .summary-row:not(:last-child){ border-bottom:1px solid var(--line); }
   .summary-row b{ color:var(--ink); }
-  .summary-total{ font-family:var(--serif); font-size:22px; color:var(--brand); }
 
-  .step-copy{ font-size:13.5px; color:var(--ink-dim); margin:0 0 16px; }
+  .cta{
+    width:100%; background:var(--brand); color:var(--brand-ink); border:none; border-radius:999px;
+    padding:16px; font-size:15px; font-weight:600; cursor:pointer; font-family:inherit;
+    display:flex; justify-content:space-between; align-items:center; padding-left:22px; padding-right:22px;
+    transition:background 0.15s;
+  }
+  .cta:hover{ background:var(--brand-deep); }
 
-  /* A completed step collapses to a one-line recap with an edit affordance. */
-  .recap{ display:flex; justify-content:space-between; align-items:flex-start; gap:14px; font-size:14px; color:var(--ink-dim); }
-  .recap .lines{ line-height:1.7; }
-  .recap b{ color:var(--ink); font-weight:500; }
+  .microcopy{ font-size:12.5px; color:var(--ink-faint); margin-top:14px; line-height:1.6; }
 
-  .loading{ text-align:center; padding:80px 0; color:var(--ink-faint); font-size:14px; }
+  .device-switch{ padding:40px 0 0; }
+  .device-switch h2{ font-family:var(--serif); font-weight:440; font-size:22px; margin:0 0 18px; }
+  .device-rail{ display:flex; gap:12px; overflow-x:auto; padding-bottom:10px; }
+  .device-card{
+    flex:0 0 150px; border:1px solid var(--line); border-radius:14px; background:var(--paper-warm);
+    padding:16px 14px; cursor:pointer; text-align:left;
+  }
+  .device-card.active{ border-color:var(--brand); }
+  .device-card img{ width:100%; height:90px; object-fit:contain; margin-bottom:10px; }
+  .device-card .dn{ font-size:13.5px; font-weight:600; margin-bottom:2px; }
+  .device-card .dp{ font-size:12px; color:var(--ink-faint); }
+  .device-card .dp s{ margin-right:5px; }
+
+  .site-foot{ border-top:1px solid var(--line); padding:32px 0; margin-top:40px; }
+  .foot-row{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px; font-size:13px; color:var(--ink-faint); }
+  .foot-links{ display:flex; gap:20px; flex-wrap:wrap; font-size:13.5px; }
+  .foot-links a{ color:var(--ink-dim); text-decoration:none; }
+  .foot-links a:hover{ color:var(--ink); }
 </style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="assets/pricing.js"></script>
 </head>
 <body>
 
@@ -59,124 +187,78 @@
   <div class="wrap row">
     <a href="index.html" class="brand">Tal<span>a</span>ks</a>
     <div class="navlinks">
-      <a href="catalog.html">&larr; Back to devices</a>
+      <a href="catalog.html">Devices</a>
+      <a href="index.html#how">How it works</a>
+      <a href="blog.html">Journal</a>
+      <a href="faq.html">FAQ</a>
     </div>
   </div>
 </nav>
 
-<div id="loading" class="loading">Loading your plan…</div>
+<div class="wrap">
+  <div class="crumb"><a href="catalog.html">Devices</a> &nbsp;/&nbsp; <a id="crumb-brand-link" href="#"><span id="crumb-brand">&nbsp;</span></a> &nbsp;/&nbsp; <span id="crumb-name">&nbsp;</span></div>
 
-<div class="checkout" id="checkout" style="display:none;">
+  <div class="product">
+    <div class="thumbrail" id="thumbrail"></div>
 
-  <h1 class="page-title">Confirm your plan</h1>
-  <p class="lede">Three steps before your device ships — where it goes, who you are, then your card. Nothing is charged until we confirm your order.</p>
-
-  <div class="rail">
-    <div class="rail-step active" id="rail-1"><span class="dot">1</span><span class="label">Delivery</span></div>
-    <div class="rail-line"></div>
-    <div class="rail-step" id="rail-2"><span class="dot">2</span><span class="label">Identity</span></div>
-    <div class="rail-line"></div>
-    <div class="rail-step" id="rail-3"><span class="dot">3</span><span class="label">Payment</span></div>
-  </div>
-
-  <div class="card">
-    <div class="card-title">Your selection</div>
-    <div class="plan-row">
-      <img id="plan-img" src="" alt="">
-      <div class="plan-details">
-        <div class="pn" id="plan-name">—</div>
-        <div class="pd" id="plan-detail">—</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Step 1 — delivery details -->
-  <div class="card" id="card-delivery">
-    <div class="card-title">
-      <span class="step-num" id="num-1">1</span> Delivery details
-      <span class="status-pill pending" id="delivery-status" style="margin-left:auto;">Needed</span>
+    <div class="stage">
+      <div class="stage-badge">Brand new</div>
+      <div class="stage-save" id="stage-save" style="display:none;"></div>
+      <img id="stage-img" src="" alt="">
     </div>
 
-    <div id="delivery-form">
-      <p class="step-copy">Where should the device go? We’ll use these details for delivery and returns.</p>
+    <div class="info">
+      <h1 id="p-name">Loading device…</h1>
+      <p class="subtitle" id="p-sub">Loading…</p>
+      <p class="was-line" id="was-line" style="display:none;"></p>
+
       <div class="field">
-        <label for="d-name">Full name</label>
-        <input type="text" id="d-name" autocomplete="name" placeholder="As it appears on your ID">
+        <div class="field-label"><span>Storage</span></div>
+        <div class="pillrow" id="storage-row"></div>
       </div>
+
       <div class="field">
-        <label for="d-phone">Phone</label>
-        <input type="tel" id="d-phone" autocomplete="tel" placeholder="04XX XXX XXX">
+        <div class="field-label"><span>Colour: <b id="colour-name">Silver</b></span></div>
+        <div class="swatchrow" id="colour-row"></div>
       </div>
+
       <div class="field">
-        <label for="d-address">Street address</label>
-        <input type="text" id="d-address" autocomplete="address-line1" placeholder="12 Example Street">
+        <div class="field-label"><span>Subscription period</span></div>
+        <div id="term-rows"></div>
       </div>
-      <div class="field-row">
-        <div class="field">
-          <label for="d-suburb">Suburb</label>
-          <input type="text" id="d-suburb" autocomplete="address-level2">
-        </div>
-        <div class="field">
-          <label for="d-state">State</label>
-          <select id="d-state">
-            <option value="">Select…</option>
-            <option>NSW</option><option>VIC</option><option>QLD</option><option>WA</option>
-            <option>SA</option><option>TAS</option><option>ACT</option><option>NT</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="d-postcode">Postcode</label>
-          <input type="text" id="d-postcode" autocomplete="postal-code" inputmode="numeric" maxlength="4">
+
+      <div class="included">
+        <div class="included-mark">✓</div>
+        <div>
+          <b>Repairs handled at cost</b>
+          <span>Manufacturing faults are on us, free. Drop it and we’ll arrange the repair
+          through the manufacturer and charge you what it actually costs — no markup, quoted first.
+          Everyday wear is never charged. Loss and theft aren’t covered.
+          <a href="faq.html#repairs">How repairs work</a>.</span>
         </div>
       </div>
-      <div class="form-error" id="d-error"></div>
-      <button class="action-btn" id="d-btn" onclick="saveDelivery()">Save and continue</button>
-    </div>
 
-    <div id="delivery-recap" style="display:none;">
-      <div class="recap">
-        <div class="lines" id="recap-lines"></div>
-        <button class="text-btn" onclick="editDelivery()">Edit</button>
+      <div class="summary">
+        <div class="summary-row"><span>Recommended retail price</span><b id="sum-rrp">—</b></div>
+        <div class="summary-row"><span>Total over your term</span><b id="sum-total">—</b></div>
+        <div class="summary-row"><span>Difference</span><b id="sum-diff">—</b></div>
+        <div class="summary-row"><span>To pay at the end of your term</span><b>$0 — return the device</b></div>
+        <div class="summary-row"><span>Free delivery</span><b>3–5 business days</b></div>
       </div>
+
+      <button class="cta" id="cta-button">
+        <span>Start this plan</span>
+        <span id="cta-price">—</span>
+      </button>
+
+      <p class="microcopy">Subject to a quick ID check. At the end of your term you can upgrade free, renew, or send it back. Total payments always stay under the phone's retail price.</p>
     </div>
   </div>
 
-  <!-- Step 2 — identity -->
-  <div class="card locked" id="card-identity">
-    <div class="card-title">
-      <span class="step-num idle" id="num-2">2</span> Verify your identity
-      <span class="status-pill pending" id="didit-status" style="margin-left:auto;">Locked</span>
-    </div>
-    <p class="step-copy">We use Didit to confirm who you are — a photo ID and a quick liveness check, done on their secure page, not ours.</p>
-    <div class="form-error" id="v-error"></div>
-    <button class="action-btn" id="btn-verify" onclick="startVerification()" disabled>Start identity verification</button>
+  <div class="device-switch">
+    <h2>Or choose a different device</h2>
+    <div class="device-rail" id="device-rail"></div>
   </div>
-
-  <!-- Step 3 — payment -->
-  <div class="card locked" id="card-payment">
-    <div class="card-title">
-      <span class="step-num idle" id="num-3">3</span> Set up payment
-      <span class="status-pill pending" id="pay-status" style="margin-left:auto;">Locked</span>
-    </div>
-    <p class="step-copy"><b>Nothing is charged when you submit.</b> Your card is entered on Stripe’s secure page — it never
-      touches Talaks’ servers — and we hold it while we review your order. Your first payment is taken only if we approve
-      the order, usually within one business day. If we can’t fill it, you’re charged nothing at all.</p>
-    <p class="form-note" id="pay-note">Your plan runs for its full term and then stops. It does not roll on month to month, and there is nothing to cancel at the end.</p>
-    <div class="form-error" id="p-error"></div>
-    <button class="action-btn" id="btn-pay" onclick="startPayment()" disabled>Continue to card details</button>
-  </div>
-
-  <div class="card">
-    <div class="card-title">Order summary</div>
-    <div class="summary-row"><span>Device</span><b id="sum-device">—</b></div>
-    <div class="summary-row"><span>Storage / Colour</span><b id="sum-spec">—</b></div>
-    <div class="summary-row"><span>Term</span><b id="sum-term">—</b></div>
-    <div class="summary-row"><span>Recommended retail price</span><b id="sum-rrp">—</b></div>
-    <div class="summary-row"><span>Total over term</span><b id="sum-total">—</b></div>
-    <div class="summary-row"><span>Monthly payment</span><b class="summary-total" id="sum-monthly">—</b></div>
-  </div>
-
-  <p class="microcopy">Identity verification runs on Didit’s hosted flow. Your card is validated and saved by Stripe when you submit — nothing is charged until your order is approved.</p>
 </div>
 
 <footer class="site-foot">
@@ -193,470 +275,266 @@
   </div>
 </footer>
 
-<script src="assets/auth.js"></script>
 <script>
-  var PLACEHOLDER_IMG = 'data:image/svg+xml;utf8,' + encodeURIComponent(
-    '<svg xmlns="http://www.w3.org/2000/svg" width="140" height="180"><rect width="140" height="180" fill="#FBF8F3"/><text x="50%" y="50%" font-family="sans-serif" font-size="10" fill="#8B93A1" text-anchor="middle" dominant-baseline="middle">No photo</text></svg>'
+  const PLACEHOLDER_IMG = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300"><rect width="300" height="300" fill="#FBF8F3"/><text x="50%" y="50%" font-family="sans-serif" font-size="15" fill="#8B93A1" text-anchor="middle" dominant-baseline="middle">Photo coming soon</text></svg>'
   );
-  var PLAN_KEY = 'talaks_plan';
-  var VERIFY_KEY = 'talaks_verification_session';
 
-  var user = null;
-  var plan = null;      // { device, storage, colour, term }
-  var pollHandle = null;
+  const TERM_META = {
+    12: { label:'12 months', note:'Fastest device turnover' },
+    24: { label:'24 months', note:'Most popular', recommended:true },
+    36: { label:'36 months', note:'Lowest monthly' },
+  };
 
-  /* --- plan selection ---------------------------------------------------
-   * Didit's callback lands back on a bare checkout.html, so the query string
-   * that carried the device choice is gone by then. Stash it on arrival and
-   * read it back when the params are missing.
-   */
-  function resolvePlan(){
-    var p = new URLSearchParams(location.search);
-    if (p.get('device')) {
-      var picked = {
-        device:  p.get('device'),
-        storage: p.get('storage'),
-        colour:  p.get('colour'),
-        term:    parseInt(p.get('term'), 10),
-      };
-      try { sessionStorage.setItem(PLAN_KEY, JSON.stringify(picked)); } catch (e) {}
-      return picked;
-    }
-    try {
-      var saved = sessionStorage.getItem(PLAN_KEY);
-      return saved ? JSON.parse(saved) : null;
-    } catch (e) { return null; }
+  // Device/pricing data lives in Supabase (table: devices) — the admin panel
+  // writes here and every page reads live, no redeploy needed.
+  // Reuses the one client assets/auth.js already created — two independent
+  // GoTrue clients on the same page both poll for session/token refresh and
+  // can race each other, which is what the browser was warning about.
+  const supabaseClient = Talaks.client;
+
+  let DEVICES = [];
+  let state = { deviceId: null, storageIdx:0, colourIdx:0, termIdx:24 };
+
+  /* Base price against total payable, in words. The database refuses to save a
+   * plan whose total reaches the RRP, so in practice this always reads "less
+   * than" — the other two branches exist so the line can never quietly state
+   * something untrue if that ever changes. */
+  function diffLine(rrp, total){
+    const gap = Math.round((rrp - total) * 100) / 100;
+    if (gap > 0) return money(gap) + ' less than the retail price';
+    if (gap === 0) return 'The same as the retail price';
+    return money(-gap) + ' more than the retail price';
   }
 
   function money(n){
-    var r = Math.round(n * 100) / 100;
+    const r = Math.round(n * 100) / 100;
     return '$' + r.toLocaleString('en-AU', r % 1 === 0
       ? { maximumFractionDigits: 0 }
       : { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
+  function getDevice(){ return DEVICES.find(d => d.id === state.deviceId); }
 
-  function show(id, msg){
-    var el = document.getElementById(id);
-    el.textContent = msg || '';
-    el.style.display = msg ? 'block' : 'none';
+  /* Prices are explicit per storage tier per term — see assets/pricing.js.
+   * Nothing is derived on this page. */
+  const P = window.TalaksPricing;
+
+  supabaseClient
+    .from('devices')
+    .select('*')
+    .then(({ data, error }) => {
+      if (data) data = data.filter(P.isLive);
+      if (error || !data || data.length === 0) {
+        document.querySelector('.wrap').innerHTML = '<p style="padding:60px 0;">Couldn\'t load device data from Supabase.</p>';
+        console.error(error);
+        return;
+      }
+      DEVICES = data.map(d => ({
+        id: d.id, brand: d.brand, name: d.name, sub: d.sub,
+        storages: P.sellableStorages(d), colours: d.colours,
+      }));
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const requestedDevice = urlParams.get('device');
+      if (!requestedDevice || !DEVICES.some(d => d.id === requestedDevice)) {
+        // No valid device requested — send them to the catalogue to choose one,
+        // rather than silently guessing a device for them.
+        window.location.replace('catalog.html');
+        return;
+      }
+      state.deviceId = requestedDevice;
+
+      // Pick up storage/colour/term from the URL too, if a valid value is
+      // there — so a refresh or a shared link lands on the exact plan that
+      // was being viewed, not just the right device on its default tier.
+      const device = getDevice();
+      const requestedStorage = urlParams.get('storage');
+      if (requestedStorage) {
+        const idx = device.storages.findIndex(s => String(s.gb) === requestedStorage);
+        if (idx !== -1) state.storageIdx = idx;
+      }
+      const requestedColour = urlParams.get('colour');
+      if (requestedColour) {
+        const idx = device.colours.findIndex(c => c.name === requestedColour);
+        if (idx !== -1) state.colourIdx = idx;
+      }
+      const requestedTerm = parseInt(urlParams.get('term'), 10);
+      if (!Number.isNaN(requestedTerm)) state.termIdx = requestedTerm;
+
+      render();
+    });
+
+  /* Keep the address bar in sync with everything currently on screen — device,
+   * storage, colour and term — not just the device. A refresh, a shared link,
+   * or the browser back button should all land on the exact plan being
+   * viewed, not just the right device with the wrong tier. */
+  function syncUrl(device, storage, colour, months){
+    const url = new URL(window.location.href);
+    url.searchParams.set('device', device.id);
+    url.searchParams.set('storage', storage.gb);
+    url.searchParams.set('colour', colour.name);
+    url.searchParams.set('term', months);
+    history.replaceState(null, '', url);
+
+    // The nav's sign-in chip captures "come back here" at page load, before
+    // any of the above existed — refresh it so signing in returns to the
+    // plan actually being viewed, not the one the page first loaded with.
+    const navLink = document.querySelector('.nav-account');
+    if (navLink && !navLink.classList.contains('signed-in') && window.Talaks) {
+      navLink.href = Talaks.signInUrl(Talaks.currentPageAsNext());
+    }
   }
 
-  function noPlan(){
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('checkout').style.display = 'block';
-    document.getElementById('checkout').innerHTML =
-      '<h1 class="page-title">No plan selected</h1>' +
-      '<p class="lede">Choose a device first and we’ll bring you straight back here.</p>' +
-      '<a href="catalog.html" class="action-btn" style="display:inline-block; width:auto; padding:14px 28px; text-decoration:none;">Browse devices</a>';
-  }
+  function render(){
+    const device = getDevice();
+    const storage = device.storages[state.storageIdx];
+    const colour = device.colours[state.colourIdx];
+    // Terms shown are the union across this device's tiers; the ones the
+    // chosen tier doesn't offer render disabled so "36 months" is visible
+    // even when 256GB doesn't have it — the customer learns 512GB does.
+    const deviceTermMonths = P.termsForDevice(device);
+    const tierTerms = P.termsFor(storage);
+    if (!tierTerms.includes(state.termIdx)) state.termIdx = tierTerms.includes(24) ? 24 : tierTerms[0];
+    const months = state.termIdx;
+    const monthly = P.monthly(storage, months);
+    const total = monthly * months;
+    const rrp = Number(storage.rrp);
+    const onSale = false;
+    syncUrl(device, storage, colour, months);
 
-  async function renderPlan(){
-    var res = await Talaks.client.from('devices').select('*')
-      .eq('id', plan.device).maybeSingle();
-    var row = res.data;
-    if (!row) { noPlan(); return false; }
+    document.getElementById('crumb-brand').textContent = device.brand;
+    document.getElementById('crumb-brand-link').href = 'catalog.html?brand=' + encodeURIComponent(device.brand);
+    document.getElementById('crumb-name').textContent = device.name;
+    document.getElementById('p-name').textContent = device.name;
+    document.getElementById('p-sub').textContent = device.sub;
+    // Keep the tab title and search snippet specific to the device and
+    // price actually on screen, not a generic "Build your plan" for every
+    // device/URL combination.
+    document.title = device.name + ' Plan — From ' + money(monthly) + '/month, No Credit Check | Talaks';
+    const metaDesc = document.getElementById('meta-desc');
+    if (metaDesc) metaDesc.setAttribute('content',
+      'Get the ' + device.name + ' on a monthly plan from ' + money(monthly) + '/month. No credit check, no upfront cost, free delivery Australia-wide.');
+    document.querySelector('.stage-badge').textContent = device.admin_only ? 'Admin only — test product' : 'Brand new';
+    document.getElementById('stage-img').src = colour.img;
+    document.getElementById('stage-img').alt = device.name + ' in ' + colour.name;
+    document.getElementById('stage-img').onerror = function(){ this.onerror=null; this.src = PLACEHOLDER_IMG; };
+    document.getElementById('colour-name').textContent = colour.name;
+    const rrpWas = P.rrpWas(storage);
+    document.getElementById('sum-rrp').innerHTML = (rrpWas ? '<s>' + money(rrpWas) + '</s>' : '') + money(rrp);
+    // The total cost of the plan, shown with equal prominence to the
+    // monthly figure — a monthly-only price without its total next to it is
+    // exactly what the ACCC's price-display guidance flags.
+    document.getElementById('sum-total').textContent = money(total) + ' over ' + months + ' months';
+    // The gap between the base price and the total payable, stated outright.
+    // A regulated consumer lease has to disclose exactly this (NCC Part 11 —
+    // base price, total payable, and the difference between them). Talaks sits
+    // outside Part 11 because the total never exceeds the cash price, which is
+    // precisely why showing the number costs nothing and proves the point.
+    document.getElementById('sum-diff').textContent = diffLine(rrp, total);
 
-    var storage = row.storages.find(function(s){ return s.gb === plan.storage; });
-    var colour = row.colours.find(function(c){ return c.name === plan.colour; });
-    if (!storage || !colour) { noPlan(); return false; }
+    // Sale badge on the photo when this exact plan has been cut.
+    const monthlyWas = P.monthlyWas(storage, months);
+    const saveEl = document.getElementById('stage-save');
+    saveEl.style.display = monthlyWas ? '' : 'none';
+    saveEl.textContent = monthlyWas ? 'Save ' + money(monthlyWas - monthly) + '/mo' : '';
+    // Just the RRP next to the monthly figure — the comparison sells itself.
+    // The full term total lives on the checkout summary, where it belongs.
+    const wasEl = document.getElementById('was-line');
+    wasEl.style.display = '';
+    wasEl.innerHTML = 'RRP ' + (rrpWas ? '<s>' + money(rrpWas) + '</s>' : '') + '<b>' + money(rrp) + '</b>';
+    document.getElementById('cta-price').textContent = money(monthly) + '/mo';
 
-    // The explicit price for this tier and term — the same number the server
-    // reads when it records the order. If the tier doesn't offer this term
-    // (someone edited the URL), there is no plan to show.
-    var monthly = window.TalaksPricing.monthly(storage, plan.term);
-    if (monthly === null) { noPlan(); return false; }
-    var total = monthly * plan.term;
-
-    var img = document.getElementById('plan-img');
-    img.src = colour.img;
-    img.alt = row.name;
-    img.onerror = function(){ this.onerror = null; this.src = PLACEHOLDER_IMG; };
-
-    document.getElementById('plan-name').textContent = row.name;
-    document.getElementById('plan-detail').textContent = plan.storage + ' — ' + plan.colour;
-    document.getElementById('sum-device').textContent = row.name;
-    document.getElementById('sum-spec').textContent = plan.storage + ' / ' + plan.colour;
-    document.getElementById('sum-term').textContent = plan.term + ' months';
-    document.getElementById('sum-rrp').textContent = money(storage.rrp);
-    document.getElementById('sum-total').textContent = money(total);
-    document.getElementById('sum-monthly').textContent = money(monthly) + '/mo';
-    return true;
-  }
-
-  /* --- step state ------------------------------------------------------- */
-
-  function setRail(step, state){
-    var el = document.getElementById('rail-' + step);
-    el.className = 'rail-step' + (state ? ' ' + state : '');
-  }
-
-  function unlockIdentity(){
-    document.getElementById('card-identity').classList.remove('locked');
-    document.getElementById('num-2').classList.remove('idle');
-    document.getElementById('btn-verify').disabled = false;
-    var pill = document.getElementById('didit-status');
-    if (pill.textContent === 'Locked') { pill.textContent = 'Not started'; }
-    setRail(2, 'active');
-  }
-
-  function markVerified(){
-    var pill = document.getElementById('didit-status');
-    pill.className = 'status-pill done';
-    pill.textContent = 'Verified';
-    var btn = document.getElementById('btn-verify');
-    btn.textContent = 'Identity verified';
-    btn.disabled = true;
-    setRail(2, 'done');
-
-    document.getElementById('card-payment').classList.remove('locked');
-    document.getElementById('num-3').classList.remove('idle');
-    document.getElementById('btn-pay').disabled = false;
-    var payPill = document.getElementById('pay-status');
-    payPill.className = 'status-pill pending';
-    payPill.textContent = 'Ready';
-    setRail(3, 'active');
-  }
-
-  /* --- step 1: delivery -------------------------------------------------- */
-
-  var PROFILE_FIELDS = ['full_name', 'phone', 'address_line', 'suburb', 'state', 'postcode'];
-
-  function profileComplete(p){
-    return !!p && PROFILE_FIELDS.every(function(f){ return p[f] && String(p[f]).trim(); });
-  }
-
-  function fillDeliveryForm(p){
-    if (!p) return;
-    document.getElementById('d-name').value     = p.full_name || '';
-    document.getElementById('d-phone').value    = p.phone || '';
-    document.getElementById('d-address').value  = p.address_line || '';
-    document.getElementById('d-suburb').value   = p.suburb || '';
-    document.getElementById('d-state').value    = p.state || '';
-    document.getElementById('d-postcode').value = p.postcode || '';
-  }
-
-  function collapseDelivery(p){
-    // Built with real DOM nodes, not innerHTML — these are customer-entered
-    // form values, and concatenating them into HTML would let something
-    // like a name containing "<img onerror=...>" execute as script.
-    var box = document.getElementById('recap-lines');
-    box.textContent = '';
-    var name = document.createElement('b');
-    name.textContent = p.full_name;
-    box.appendChild(name);
-    box.appendChild(document.createElement('br'));
-    box.appendChild(document.createTextNode(p.address_line));
-    box.appendChild(document.createElement('br'));
-    box.appendChild(document.createTextNode(p.suburb + ' ' + p.state + ' ' + p.postcode));
-    box.appendChild(document.createElement('br'));
-    box.appendChild(document.createTextNode(p.phone));
-    document.getElementById('delivery-form').style.display = 'none';
-    document.getElementById('delivery-recap').style.display = 'block';
-    var pill = document.getElementById('delivery-status');
-    pill.className = 'status-pill done';
-    pill.textContent = 'Saved';
-    setRail(1, 'done');
-  }
-
-  function editDelivery(){
-    document.getElementById('delivery-form').style.display = 'block';
-    document.getElementById('delivery-recap').style.display = 'none';
-    var pill = document.getElementById('delivery-status');
-    pill.className = 'status-pill working';
-    pill.textContent = 'Editing';
-    setRail(1, 'active');
-  }
-
-  async function saveDelivery(){
-    show('d-error', '');
-    var fields = {
-      full_name:    document.getElementById('d-name').value.trim(),
-      phone:        document.getElementById('d-phone').value.trim(),
-      address_line: document.getElementById('d-address').value.trim(),
-      suburb:       document.getElementById('d-suburb').value.trim(),
-      state:        document.getElementById('d-state').value,
-      postcode:     document.getElementById('d-postcode').value.trim(),
+    document.getElementById('cta-button').onclick = () => {
+      const params = new URLSearchParams({
+        device: device.id,
+        storage: storage.gb,
+        colour: colour.name,
+        term: months,
+      });
+      window.location.href = 'checkout.html?' + params.toString();
     };
 
-    var missing = PROFILE_FIELDS.filter(function(f){ return !fields[f]; });
-    if (missing.length) { show('d-error', 'Please fill in every field — we need all of it to ship your device.'); return; }
-    if (!/^\d{4}$/.test(fields.postcode)) { show('d-error', 'An Australian postcode is four digits.'); return; }
+    const thumbrail = document.getElementById('thumbrail');
+    thumbrail.innerHTML = '';
+    device.colours.forEach((c, i) => {
+      const t = document.createElement('button');
+      t.type = 'button';
+      t.className = 'thumb' + (i === state.colourIdx ? ' active' : '');
+      t.setAttribute('aria-label', c.name);
+      t.setAttribute('aria-pressed', i === state.colourIdx ? 'true' : 'false');
+      t.innerHTML = '<img src="' + c.img + '" alt="" onerror="this.onerror=null;this.src=\'' + PLACEHOLDER_IMG + '\'">';
+      t.onclick = () => { state.colourIdx = i; render(); };
+      thumbrail.appendChild(t);
+    });
 
-    var btn = document.getElementById('d-btn');
-    btn.disabled = true; btn.textContent = 'Saving…';
-    var { error } = await Talaks.saveProfile(user.id, fields);
-    btn.disabled = false; btn.textContent = 'Save and continue';
+    const storageRow = document.getElementById('storage-row');
+    storageRow.innerHTML = '';
+    device.storages.forEach((s, i) => {
+      const p = document.createElement('button');
+      p.className = 'pill' + (i === state.storageIdx ? ' active' : '');
+      p.textContent = s.gb;
+      p.onclick = () => { state.storageIdx = i; render(); };
+      storageRow.appendChild(p);
+    });
 
-    if (error) { show('d-error', error.message); return; }
+    const colourRow = document.getElementById('colour-row');
+    colourRow.innerHTML = '';
+    device.colours.forEach((c, i) => {
+      const s = document.createElement('button');
+      s.type = 'button';
+      s.className = 'swatch' + (i === state.colourIdx ? ' active' : '');
+      s.setAttribute('aria-label', c.name);
+      s.setAttribute('aria-pressed', i === state.colourIdx ? 'true' : 'false');
+      s.innerHTML = '<img src="' + c.img + '" alt="" onerror="this.onerror=null;this.src=\'' + PLACEHOLDER_IMG + '\'">';
+      s.onclick = () => { state.colourIdx = i; render(); };
+      colourRow.appendChild(s);
+    });
 
-    collapseDelivery(fields);
-    unlockIdentity();
+    const termRows = document.getElementById('term-rows');
+    termRows.innerHTML = '';
+    deviceTermMonths.forEach(m => {
+      const meta = TERM_META[m] || { label: m + ' months' };
+      const mo = P.monthly(storage, m);
+      const row = document.createElement('button');
+      const offered = mo !== null;
+      row.className = 'term-pill' + (m === months ? ' active' : '') + (offered ? '' : ' unavailable');
+      row.disabled = !offered;
+      row.innerHTML =
+        '<span class="t">' + meta.label + (meta.recommended && offered ? '<span class="tag">Popular</span>' : '') + '</span>' +
+        '<span class="price">' + (offered
+          ? (P.monthlyWas(storage, m) ? '<s>' + money(P.monthlyWas(storage, m)) + '</s>' : '') +
+            money(mo) + '<small>/mo</small>'
+          : '<small>512GB only</small>') + '</span>';
+      if (offered) row.onclick = () => { state.termIdx = m; render(); };
+      termRows.appendChild(row);
+    });
+
+    const deviceRail = document.getElementById('device-rail');
+    deviceRail.innerHTML = '';
+    DEVICES.forEach(d => {
+      const card = document.createElement('button');
+      card.className = 'device-card' + (d.id === state.deviceId ? ' active' : '');
+      const cheapest = P.fromMonthly(d);
+      const wasCheapest = P.fromMonthlyWas(d);
+      card.innerHTML =
+        '<img src="' + d.colours[0].img + '" alt="' + d.name + '" onerror="this.onerror=null;this.src=\'' + PLACEHOLDER_IMG + '\'">' +
+        '<div class="dn">' + d.name + '</div>' +
+        '<div class="dp">' + (wasCheapest && wasCheapest > cheapest ? '<s>' + money(wasCheapest) + '</s> ' : '') +
+          'From ' + money(cheapest) + '/mo</div>';
+      card.onclick = () => {
+        state.deviceId = d.id; state.storageIdx = 0; state.colourIdx = 0;
+        // Keep the address bar in sync with what's on screen — otherwise a
+        // refresh or a shared link goes back to whichever device the page
+        // originally loaded with, not the one actually being viewed.
+        const url = new URL(window.location.href);
+        url.searchParams.set('device', d.id);
+        history.replaceState(null, '', url);
+        render();
+        window.scrollTo({top:0, behavior:'smooth'});
+      };
+      deviceRail.appendChild(card);
+    });
   }
-
-  /* --- step 2: identity -------------------------------------------------- */
-
-  async function startVerification(){
-    show('v-error', '');
-    var session = await Talaks.getSession();
-    if (!session) { location.href = Talaks.signInUrl(Talaks.currentPageAsNext()); return; }
-
-    var btn = document.getElementById('btn-verify');
-    btn.disabled = true; btn.textContent = 'Starting…';
-    var pill = document.getElementById('didit-status');
-    pill.className = 'status-pill working';
-    pill.textContent = 'Starting…';
-
-    try {
-      var res = await fetch(Talaks.url + '/functions/v1/create-verification', {
-        method: 'POST',
-        headers: {
-          'Authorization': 'Bearer ' + session.access_token,
-          'apikey': Talaks.anonKey,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          callback: location.origin + location.pathname + location.search,
-        }),
-      });
-      var body = await res.json();
-
-      if (!res.ok) {
-        btn.disabled = false; btn.textContent = 'Start identity verification';
-        pill.className = 'status-pill pending'; pill.textContent = 'Not started';
-        show('v-error', body.error || 'Could not start verification. Please try again.');
-        return;
-      }
-
-      try { localStorage.setItem(VERIFY_KEY, body.session_id); } catch (e) {}
-      location.href = body.url;
-    } catch (e) {
-      btn.disabled = false; btn.textContent = 'Start identity verification';
-      pill.className = 'status-pill pending'; pill.textContent = 'Not started';
-      show('v-error', 'Could not reach the server. Check your connection and try again.');
-    }
-  }
-
-  var STATUS_LABELS = {
-    'Approved': 'Verified', 'Declined': 'Declined',
-    'In Review': 'In review', 'In Progress': 'In progress', 'Not Started': 'Not started',
-  };
-
-  function pollVerification(sessionId){
-    var pill = document.getElementById('didit-status');
-    pill.className = 'status-pill working';
-    pill.textContent = 'Checking…';
-    var btn = document.getElementById('btn-verify');
-    btn.disabled = true; btn.textContent = 'Checking your verification…';
-
-    var tries = 0;
-    pollHandle = setInterval(async function(){
-      tries++;
-      var res = await Talaks.client.from('verifications')
-        .select('status').eq('session_id', sessionId).maybeSingle();
-
-      if (res.data && res.data.status) {
-        var status = res.data.status;
-        if (status === 'Approved') {
-          clearInterval(pollHandle);
-          try { localStorage.removeItem(VERIFY_KEY); } catch (e) {}
-          markVerified();
-          return;
-        }
-        if (status === 'Declined') {
-          clearInterval(pollHandle);
-          try { localStorage.removeItem(VERIFY_KEY); } catch (e) {}
-          pill.className = 'status-pill failed';
-          pill.textContent = 'Declined';
-          btn.textContent = 'Verification declined';
-          show('v-error', 'Your verification was declined. Email info@talaks.com.au if you think that’s wrong.');
-          return;
-        }
-        pill.textContent = STATUS_LABELS[status] || status;
-      }
-
-      if (tries > 60) { // ~3 minutes
-        clearInterval(pollHandle);
-        pill.className = 'status-pill pending';
-        pill.textContent = 'Still processing';
-        btn.disabled = false;
-        btn.textContent = 'Start identity verification';
-        show('v-error', 'This is taking longer than usual. Refresh in a minute to check again.');
-      }
-    }, 3000);
-  }
-
-  /* --- step 3: payment ---------------------------------------------------- */
-
-  async function startPayment(){
-    show('p-error', '');
-    var session = await Talaks.getSession();
-    if (!session) { location.href = Talaks.signInUrl(Talaks.currentPageAsNext()); return; }
-
-    var btn = document.getElementById('btn-pay');
-    btn.disabled = true; btn.textContent = 'Opening secure checkout…';
-
-    try {
-      // Only the plan choice is sent. The price is computed server-side from
-      // the devices table — an amount from this page would be trivial to forge.
-      var res = await fetch(Talaks.url + '/functions/v1/create-checkout-session', {
-        method: 'POST',
-        headers: {
-          'Authorization': 'Bearer ' + session.access_token,
-          'apikey': Talaks.anonKey,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          device: plan.device, storage: plan.storage,
-          colour: plan.colour, term: plan.term,
-        }),
-      });
-      var body = await res.json();
-
-      if (!res.ok) {
-        btn.disabled = false; btn.textContent = 'Continue to card details';
-        show('p-error', body.error || 'Could not submit your order. Please try again.');
-        return;
-      }
-      location.href = body.url;
-    } catch (e) {
-      btn.disabled = false; btn.textContent = 'Continue to card details';
-      show('p-error', 'Could not reach the server. Check your connection and try again.');
-    }
-  }
-
-  /* The order is in, and nothing has been charged. What we say
-   * depends on which state the row is actually in — "pending_approval" and
-   * "active" are not the same thing, and only one of them means a card has
-   * been charged, so they can't share one message. */
-  function markApplied(status){
-    var pill = document.getElementById('pay-status');
-    pill.className = 'status-pill done';
-    var btn = document.getElementById('btn-pay');
-    btn.disabled = true;
-    setRail(3, 'done');
-    var note = document.getElementById('pay-note');
-
-    if (status === 'active') {
-      pill.textContent = 'Active';
-      btn.textContent = 'Subscription active';
-      note.innerHTML =
-        '<b style="color:var(--teal);">You\u2019re approved \u2014 your first payment has been taken.</b> ' +
-        'Your device ships next. You can follow it in <a href="account.html" style="color:var(--brand-deep);">your account</a>.';
-    } else {
-      pill.textContent = 'Submitted';
-      btn.textContent = 'Order submitted';
-      note.innerHTML =
-        '<b style="color:var(--teal);">Order received \u2014 nothing has been charged yet.</b> ' +
-        'We review every order before taking a payment, usually within one business day. ' +
-        'We\u2019ll email you either way; if we go ahead, your first payment is taken then and the ' +
-        'device ships. You can follow it in <a href="account.html" style="color:var(--brand-deep);">your account</a>.';
-    }
-  }
-
-  /* Back from Stripe. The redirect only means the form was submitted; the card
-   * details are recorded by a webhook a moment later, and the actual charge
-   * (or decision to hold off) happens after our own review — so we poll our
-   * own row rather than trusting the URL. */
-  function pollApplication(sessionId){
-    var pill = document.getElementById('pay-status');
-    pill.className = 'status-pill working';
-    pill.textContent = 'Submitting…';
-    var btn = document.getElementById('btn-pay');
-    btn.disabled = true; btn.textContent = 'Submitting your order…';
-
-    var tries = 0;
-    var handle = setInterval(async function(){
-      tries++;
-      var q = Talaks.client.from('subscriptions').select('status');
-      q = sessionId ? q.eq('checkout_session_id', sessionId) : q.eq('user_id', user.id);
-      var res = await q.order('created_at', { ascending: false }).limit(1).maybeSingle();
-
-      var st = res.data && res.data.status;
-      if (st === 'pending_approval' || st === 'active') {
-        clearInterval(handle);
-        try { sessionStorage.removeItem(PLAN_KEY); } catch (e) {}
-        markApplied(st);
-        return;
-      }
-      if (tries > 20) {
-        clearInterval(handle);
-        pill.className = 'status-pill working';
-        pill.textContent = 'Unconfirmed';
-        // We genuinely don't know the outcome at this point — no row has come
-        // through yet, so we say that rather than asserting nothing was
-        // charged, which we can't actually confirm from here.
-        document.getElementById('pay-note').textContent =
-          'Your order was submitted, but we can\u2019t yet confirm its status here — it can take ' +
-          'a minute to record on our side. Refresh your account page in a moment to see the latest status, ' +
-          'and we\u2019ll email you either way. If you\u2019re ever unsure whether you\u2019ve been charged, ' +
-          'check your account page or contact us at info@talaks.com.au.';
-      }
-    }, 3000);
-  }
-
-  /* --- boot -------------------------------------------------------------- */
-
-  (async function init(){
-    // Unauthenticated visitors go to sign-in and come straight back here,
-    // device selection and all.
-    var session = await Talaks.requireAuth();
-    if (!session) return;
-    user = session.user;
-
-    plan = resolvePlan();
-    if (!plan || !plan.device) { noPlan(); return; }
-
-    var ok = await renderPlan();
-    if (!ok) return;
-
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('checkout').style.display = 'block';
-
-    var results = await Promise.all([
-      Talaks.getProfile(user.id),
-      Talaks.latestVerification(user.id),
-    ]);
-    var profile = results[0];
-    var verification = results[1];
-
-    fillDeliveryForm(profile);
-    if (!profile && user.user_metadata && user.user_metadata.full_name) {
-      document.getElementById('d-name').value = user.user_metadata.full_name;
-    }
-
-    if (profileComplete(profile)) {
-      collapseDelivery(profile);
-      unlockIdentity();
-    }
-
-    // Already verified from an earlier attempt — don't make them do it twice.
-    if (verification && verification.status === 'Approved') {
-      unlockIdentity();
-      markVerified();
-      try { localStorage.removeItem(VERIFY_KEY); } catch (e) {}
-
-      // Back from Stripe. The subscription only truly starts when the webhook
-      // sees invoice.paid, so poll our own row rather than trusting the URL.
-      var q = new URLSearchParams(location.search);
-      if (q.get('applied') === '1') { pollApplication(q.get('session_id')); }
-      else if (q.get('payment') === 'cancelled') {
-        show('p-error', 'Cancelled — no card was saved and nothing has been charged. You can pick it up again whenever you\u2019re ready.');
-      }
-      return;
-    }
-
-    // Mid-flight verification: either we just came back from Didit, or the
-    // page was reloaded while one was in progress.
-    var pending = null;
-    try { pending = localStorage.getItem(VERIFY_KEY); } catch (e) {}
-    if (!pending && verification && verification.status !== 'Declined') {
-      pending = verification.session_id;
-    }
-    if (pending && profileComplete(profile)) {
-      unlockIdentity();
-      pollVerification(pending);
-    }
-  })();
 </script>
 
 </body>
