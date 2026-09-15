@@ -241,6 +241,8 @@
       <div class="summary">
         <div class="summary-row"><span>Recommended retail price</span><b id="sum-rrp">—</b></div>
         <div class="summary-row"><span>Total over your term</span><b id="sum-total">—</b></div>
+        <div class="summary-row"><span>Difference</span><b id="sum-diff">—</b></div>
+        <div class="summary-row"><span>To pay at the end of your term</span><b>$0 — return the device</b></div>
         <div class="summary-row"><span>Free delivery</span><b>3–5 business days</b></div>
       </div>
 
@@ -293,6 +295,17 @@
 
   let DEVICES = [];
   let state = { deviceId: null, storageIdx:0, colourIdx:0, termIdx:24 };
+
+  /* Base price against total payable, in words. The database refuses to save a
+   * plan whose total reaches the RRP, so in practice this always reads "less
+   * than" — the other two branches exist so the line can never quietly state
+   * something untrue if that ever changes. */
+  function diffLine(rrp, total){
+    const gap = Math.round((rrp - total) * 100) / 100;
+    if (gap > 0) return money(gap) + ' less than the retail price';
+    if (gap === 0) return 'The same as the retail price';
+    return money(-gap) + ' more than the retail price';
+  }
 
   function money(n){
     const r = Math.round(n * 100) / 100;
@@ -412,6 +425,12 @@
     // monthly figure — a monthly-only price without its total next to it is
     // exactly what the ACCC's price-display guidance flags.
     document.getElementById('sum-total').textContent = money(total) + ' over ' + months + ' months';
+    // The gap between the base price and the total payable, stated outright.
+    // A regulated consumer lease has to disclose exactly this (NCC Part 11 —
+    // base price, total payable, and the difference between them). Talaks sits
+    // outside Part 11 because the total never exceeds the cash price, which is
+    // precisely why showing the number costs nothing and proves the point.
+    document.getElementById('sum-diff').textContent = diffLine(rrp, total);
 
     // Sale badge on the photo when this exact plan has been cut.
     const monthlyWas = P.monthlyWas(storage, months);
